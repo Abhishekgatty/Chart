@@ -1,0 +1,10 @@
+.#{$app-prefix}footer{
+    --bg:#{$root-white};
+    --border-color:#{$root-primary-100};
+    [data-bs-theme=dark] & {
+        --bg:var(--#{$prefix}gray-800);
+        --border-color:var(--#{$prefix}border-color);
+    }
+    background: var(--bg);
+    border-top: 1px solid var(--border-color);
+}
