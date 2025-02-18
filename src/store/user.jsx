@@ -17,7 +17,7 @@ const defaultUserData = {
 };
 
 // Base URL for the API
-const BASE_URL = 'https://a4dd-106-51-211-140.ngrok-free.app/';
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 // Fetch user data using sessionId
 export const fetchUserData = async (sessionId) => {

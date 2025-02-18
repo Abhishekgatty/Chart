@@ -40,5 +40,5 @@
     "sass": "1.77.6",
     "vite": "^5.0.8"
   },
-  "proxy": "https://a4dd-106-51-211-140.ngrok-free.app"
+  "proxy": "https://a4dd-106-51-211-140.ngrok-free.app/"
 }

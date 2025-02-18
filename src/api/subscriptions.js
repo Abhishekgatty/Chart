@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://a4dd-106-51-211-140.ngrok-free.app';
+const BASE_URL = process.env.REACT_APP_BASE_URL;
 
 // Get Subscription Details
 export const getSubscriptionDetails = async (sessionId) => {

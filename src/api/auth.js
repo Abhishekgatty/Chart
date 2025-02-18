@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://a4dd-106-51-211-140.ngrok-free.app'; // Replace with your actual backend URL
+const BASE_URL = process.env.REACT_APP_BASE_URL; // Replace with your actual backend URL
 
 // Login
 export const loginUser = async (username, password) => {
