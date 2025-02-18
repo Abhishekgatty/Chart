@@ -47,7 +47,7 @@ function Profile() {
                     </Media>
                     <Media.Col>
                         <Media.Row>
-                            <h6 className="name">Marie George</h6>
+                            <h6 className="name">Guest User</h6>
                             <div className="indicator varified">
                                 <CheckCircleFill />
                             </div>

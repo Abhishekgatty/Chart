@@ -13,10 +13,10 @@ function Appbar({className}) {
             <div className="tyn-appbar-wrap">
                 <div className="tyn-appbar-logo ps-0 pe-3">
                     <div className="d-none d-lg-flex">
-                        <LogoLink to="/landing" full />
+                        <LogoLink to="/chatbot" full />
                     </div>
                     <div className="d-lg-none">
-                        <LogoLink to="/landing" />
+                        <LogoLink to="/chatbot" />
                     </div>
                 </div>
                 <div className="tyn-appbar-content">

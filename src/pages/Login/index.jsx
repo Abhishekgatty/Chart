@@ -1,193 +1,177 @@
 import React, { useState } from 'react';
-import Layout from '../../layout/blank';
-import { Button, Card, Row, Col, Form, Container, Alert } from 'react-bootstrap';
-import { Link, useNavigate } from 'react-router-dom';
-import LogoLink from './../../components/Logo/LogoLink';
-import axios from 'axios';
+import { loginUser } from '../../api/auth';
+import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../../store/AuthContext';
+import {
+  Button,
+  Card,
+  Row,
+  Col,
+  Form,
+  Container,
+  Alert,
+} from 'react-bootstrap';
+import LogoLink from '../../components/Logo/LogoLink';
 
-function Login() {
-    const navigate = useNavigate();
+const Login = () => {
+  const navigate = useNavigate();
+  const { login } = React.useContext(AuthContext);
 
-    // State for form data
-    const [formData, setFormData] = useState({
-        userName: '',
-        password: ''
-    });
+  // State for form data
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+  });
 
-    // State for error messages
-    const [errors, setErrors] = useState({});
+  // State for error messages
+  const [errors, setErrors] = useState({});
 
-    // State for loading and submission status
-    const [isLoading, setIsLoading] = useState(false);
-    const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
+  // State for loading and submission status
+  const [isLoading, setIsLoading] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
 
-    // Handle input changes
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-        if (errors[name]) {
-            setErrors({ ...errors, [name]: '' });
-        }
-    };
+  // Handle input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
+  };
 
-    // Validate form fields
-    const validate = () => {
-        const newErrors = {};
-        if (!formData.userName) newErrors.userName = 'Username is required';
-        if (!formData.password) newErrors.password = 'Password is required';
-        return newErrors;
-    };
+  // Validate form fields
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.username) newErrors.username = 'Username is required';
+    if (!formData.password) newErrors.password = 'Password is required';
+    return newErrors;
+  };
 
-    // Handle form submission
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-        // Validate form inputs
-        const validationErrors = validate();
-        if (Object.keys(validationErrors).length > 0) {
-            setErrors(validationErrors);
-            return;
-        }
+    // Validate form inputs
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
 
-        setIsLoading(true);
-        setSubmitStatus({ type: '', message: '' });
+    setIsLoading(true);
+    setSubmitStatus({ type: '', message: '' });
 
-        try {
-            // Send login request to the backend
-            const loginResponse = await axios({
-                method: 'post',
-                url: 'https://4b9d-106-51-211-140.ngrok-free.app/api/users/login', // Login API URL
-                data: formData,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
+    try {
+      console.log('Sending login request with:', formData);
+      const loginResponse = await loginUser(formData.username, formData.password);
+      console.log('Login response:', loginResponse);
 
-            // Extract userId from the login response
-            const { userId } = loginResponse.data;
+      const { sessionId } = loginResponse;
+      login(sessionId);
 
-            // Fetch user subscription details
-            const userResponse = await axios.get(
-                `https://4b9d-106-51-211-140.ngrok-free.app/api/users/${userId}/subscriptions`
-            );
+      setSubmitStatus({
+        type: 'success',
+        message: 'Login successful',
+      });
 
-            // Simulate saving user data globally (e.g., in localStorage or context)
-            const userData = {
-                userId,
-                ...userResponse.data
-            };
-            localStorage.setItem('userData', JSON.stringify(userData)); // Save user data locally
+      setTimeout(() => navigate('/profile'), 2000);
+    } catch (error) {
+      console.error('Login error:', error);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data ||
+        error.message ||
+        'Login failed. Please try again.';
+      setSubmitStatus({
+        type: 'error',
+        message: typeof errorMessage === 'string' ? errorMessage : 'Login failed. Please try again.',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-            // Set success message
-            setSubmitStatus({
-                type: 'success',
-                message: 'Login successful'
-            });
-
-            // Redirect to chatbot page after 2 seconds
-            setTimeout(() => navigate('/chatbot'), 2000);
-        } catch (error) {
-            console.error('Login error:', error.response || error);
-
-            // Extract and display error message
-            const errorMessage = error.response?.data?.message
-                || error.response?.data
-                || error.message
-                || 'Login failed. Please try again.';
-            setSubmitStatus({
-                type: 'error',
-                message: typeof errorMessage === 'string' ? errorMessage : 'Login failed. Please try again.'
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return (
-        <Layout title="Login" content="tyn-auth tyn-auth-centered">
-            <Container>
-                <Row className="justify-content-center">
-                    <Col xl="4" lg="5" md="7" sm="9">
-                        <div className="my-3 text-center">
-                            <LogoLink size="sm" full />
-                        </div>
-                        <Card className="border-0">
-                            <div className="p-4">
-                                <h3>Login</h3>
-
-                                {/* Display submission status */}
-                                {submitStatus.message && (
-                                    <Alert variant={submitStatus.type === 'success' ? 'success' : 'danger'}>
-                                        {submitStatus.message}
-                                    </Alert>
-                                )}
-
-                                <Form onSubmit={handleSubmit}>
-                                    {/* Username Field */}
-                                    <Form.Group className="form-group">
-                                        <Form.Label htmlFor="userName">Username</Form.Label>
-                                        <div className="form-control-wrap">
-                                            <Form.Control
-                                                type="text"
-                                                name="userName"
-                                                value={formData.userName}
-                                                onChange={handleChange}
-                                                placeholder="Enter username"
-                                                isInvalid={!!errors.userName}
-                                            />
-                                            <Form.Control.Feedback type="invalid">
-                                                {errors.userName}
-                                            </Form.Control.Feedback>
-                                        </div>
-                                    </Form.Group>
-
-                                    {/* Password Field */}
-                                    <Form.Group className="form-group">
-                                        <Form.Label className="d-flex" htmlFor="password">
-                                            Password{' '}
-                                            <Link to="/forgot" className="link link-primary ms-auto">
-                                                Forgot?
-                                            </Link>
-                                        </Form.Label>
-                                        <div className="form-control-wrap">
-                                            <Form.Control
-                                                type="password"
-                                                id="password"
-                                                name="password"
-                                                value={formData.password}
-                                                onChange={handleChange}
-                                                placeholder="password"
-                                                isInvalid={!!errors.password}
-                                            />
-                                            <Form.Control.Feedback type="invalid">
-                                                {errors.password}
-                                            </Form.Control.Feedback>
-                                        </div>
-                                    </Form.Group>
-
-                                    {/* Submit Button */}
-                                    <Button
-                                        variant="primary"
-                                        type="submit"
-                                        className="w-100 mt-3"
-                                        disabled={isLoading}
-                                    >
-                                        {isLoading ? 'Processing...' : 'Account Login'}
-                                    </Button>
-                                </Form>
-                            </div>
-                        </Card>
-                        <div className="text-center mt-4">
-                            <p className="small">
-                                Don't have an account? <Link to="/register">Register</Link>
-                            </p>
-                        </div>
-                    </Col>
-                </Row>
-            </Container>
-        </Layout>
-    );
-}
+  return (
+    <Container>
+      <Row className="justify-content-center">
+        <Col xl="4" lg="5" md="7" sm="9">
+          <div className="my-3 text-center">
+            <LogoLink size="sm" full />
+          </div>
+          <Card className="border-0">
+            <div className="p-4">
+              <h3>Login</h3>
+              {/* Display submission status */}
+              {submitStatus.message && (
+                <Alert variant={submitStatus.type === 'success' ? 'success' : 'danger'}>
+                  {submitStatus.message}
+                </Alert>
+              )}
+              <Form onSubmit={handleSubmit}>
+                {/* Username Field */}
+                <Form.Group className="form-group">
+                  <Form.Label htmlFor="username">Username</Form.Label>
+                  <div className="form-control-wrap">
+                    <Form.Control
+                      type="text"
+                      name="username"
+                      value={formData.username}
+                      onChange={handleChange}
+                      placeholder="Enter username"
+                      isInvalid={!!errors.username}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.username}
+                    </Form.Control.Feedback>
+                  </div>
+                </Form.Group>
+                {/* Password Field */}
+                <Form.Group className="form-group">
+                  <Form.Label className="d-flex" htmlFor="password">
+                    Password{' '}
+                    <Button as="a" href="/forgot" className="link link-primary ms-auto p-0">
+                      Forgot?
+                    </Button>
+                  </Form.Label>
+                  <div className="form-control-wrap">
+                    <Form.Control
+                      type="password"
+                      id="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      placeholder="password"
+                      isInvalid={!!errors.password}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.password}
+                    </Form.Control.Feedback>
+                  </div>
+                </Form.Group>
+                {/* Submit Button */}
+                <Button
+                  variant="primary"
+                  type="submit"
+                  className="w-100 mt-3"
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Processing...' : 'Account Login'}
+                </Button>
+              </Form>
+            </div>
+          </Card>
+          <div className="text-center mt-4">
+            <p className="small">
+              Don't have an account?{' '}
+              <Button as="a" href="/register" variant="link">
+                Register
+              </Button>
+            </p>
+          </div>
+        </Col>
+      </Row>
+    </Container>
+  );
+};
 
 export default Login;

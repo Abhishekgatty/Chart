@@ -3,7 +3,7 @@ import Layout from '../../layout/blank';
 import { Button, Card, Row, Col, Form, Container, Alert } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import LogoLink from '../../components/Logo/LogoLink';
-import axios from 'axios';
+import { registerUser } from '../../api/user';
 
 function Register() {
     const navigate = useNavigate();
@@ -19,7 +19,7 @@ function Register() {
         course: '',
         year: '',
         college: '',
-        subscriptionName: 'Free'
+        subscriptionName: 'Free' // Default subscription plan
     });
 
     // State for validation errors
@@ -75,50 +75,40 @@ function Register() {
                 subscriptionName: 'Free'
             };
 
-            // Send the request to the backend
-            const response = await axios({
-                method: 'post',
-                url: 'https://4b9d-106-51-211-140.ngrok-free.app/api/users/register', // Full backend URL
-                data: submitData,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            });
+            // Call the registerUser API function
+            await registerUser(submitData);
 
             // Handle successful registration
-            if (response.data) {
-                setSubmitStatus({
-                    type: 'success',
-                    message: 'Registration successful'
-                });
+            setSubmitStatus({
+                type: 'success',
+                message: 'Registration successful'
+            });
 
-                // Reset form fields
-                setFormData({
-                    userName: '',
-                    email: '',
-                    password: '',
-                    name: '',
-                    city: '',
-                    country: '',
-                    course: '',
-                    year: '',
-                    college: '',
-                    subscriptionName: 'Free'
-                });
+            // Reset form fields
+            setFormData({
+                userName: '',
+                email: '',
+                password: '',
+                name: '',
+                city: '',
+                country: '',
+                course: '',
+                year: '',
+                college: '',
+                subscriptionName: 'Free'
+            });
 
-                setErrors({});
-                setTimeout(() => navigate('/login'), 2000); // Redirect to login page after 2 seconds
-            }
+            setErrors({});
+            setTimeout(() => navigate('/login'), 2000); // Redirect to login page after 2 seconds
         } catch (error) {
-            console.error('Registration error:', error.response || error);
+            console.error('Registration error:', error);
 
             // Extract and display error message
-            const errorMessage = error.response?.data?.message 
-                || error.response?.data 
-                || error.message 
-                || 'Registration failed. Please try again.';
-
+            const errorMessage =
+                error.response?.data?.message ||
+                error.response?.data ||
+                error.message ||
+                'Registration failed. Please try again.';
             setSubmitStatus({
                 type: 'error',
                 message: typeof errorMessage === 'string' ? errorMessage : 'Registration failed. Please try again.'
@@ -129,16 +119,16 @@ function Register() {
     };
 
     return (
-        <Layout>
+        <Layout title="Register" content="tyn-auth tyn-auth-centered">
             <Container>
                 <Row className="justify-content-center">
-                    <Col md={6}>
-                        <Card>
-                            <Card.Body>
-                                <div className="text-center mb-4">
-                                    <LogoLink />
-                                    <h3>Create Account</h3>
-                                </div>
+                    <Col xl="4" lg="5" md="7" sm="9">
+                        <div className="my-3 text-center">
+                            <LogoLink size="sm" full />
+                        </div>
+                        <Card className="border-0">
+                            <div className="p-4">
+                                <h3>Create Account</h3>
 
                                 {/* Display submission status */}
                                 {submitStatus.message && (
@@ -147,164 +137,189 @@ function Register() {
                                     </Alert>
                                 )}
 
-                                {/* Registration Form */}
                                 <Form onSubmit={handleSubmit}>
                                     {/* Username Field */}
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Username</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="userName"
-                                            value={formData.userName}
-                                            onChange={handleChange}
-                                            placeholder="Enter username"
-                                            isInvalid={!!errors.userName}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.userName}
-                                        </Form.Control.Feedback>
+                                    <Form.Group className="form-group">
+                                        <Form.Label htmlFor="userName">Username</Form.Label>
+                                        <div className="form-control-wrap">
+                                            <Form.Control
+                                                type="text"
+                                                name="userName"
+                                                value={formData.userName}
+                                                onChange={handleChange}
+                                                placeholder="Enter username"
+                                                isInvalid={!!errors.userName}
+                                            />
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.userName}
+                                            </Form.Control.Feedback>
+                                        </div>
                                     </Form.Group>
 
                                     {/* Email Field */}
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Email Address</Form.Label>
-                                        <Form.Control
-                                            type="email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            placeholder="Enter email"
-                                            isInvalid={!!errors.email}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.email}
-                                        </Form.Control.Feedback>
+                                    <Form.Group className="form-group">
+                                        <Form.Label htmlFor="email">Email Address</Form.Label>
+                                        <div className="form-control-wrap">
+                                            <Form.Control
+                                                type="email"
+                                                name="email"
+                                                value={formData.email}
+                                                onChange={handleChange}
+                                                placeholder="Enter email"
+                                                isInvalid={!!errors.email}
+                                            />
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.email}
+                                            </Form.Control.Feedback>
+                                        </div>
                                     </Form.Group>
 
                                     {/* Password Field */}
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Password</Form.Label>
-                                        <Form.Control
-                                            type="password"
-                                            name="password"
-                                            value={formData.password}
-                                            onChange={handleChange}
-                                            placeholder="Enter password"
-                                            isInvalid={!!errors.password}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.password}
-                                        </Form.Control.Feedback>
+                                    <Form.Group className="form-group">
+                                        <Form.Label htmlFor="password">Password</Form.Label>
+                                        <div className="form-control-wrap">
+                                            <Form.Control
+                                                type="password"
+                                                name="password"
+                                                value={formData.password}
+                                                onChange={handleChange}
+                                                placeholder="Enter password"
+                                                isInvalid={!!errors.password}
+                                            />
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.password}
+                                            </Form.Control.Feedback>
+                                        </div>
                                     </Form.Group>
 
                                     {/* Name Field */}
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Full Name</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            placeholder="Enter full name"
-                                            isInvalid={!!errors.name}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.name}
-                                        </Form.Control.Feedback>
+                                    <Form.Group className="form-group">
+                                        <Form.Label htmlFor="name">Full Name</Form.Label>
+                                        <div className="form-control-wrap">
+                                            <Form.Control
+                                                type="text"
+                                                name="name"
+                                                value={formData.name}
+                                                onChange={handleChange}
+                                                placeholder="Enter full name"
+                                                isInvalid={!!errors.name}
+                                            />
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.name}
+                                            </Form.Control.Feedback>
+                                        </div>
                                     </Form.Group>
 
                                     {/* City Field */}
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>City</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="city"
-                                            value={formData.city}
-                                            onChange={handleChange}
-                                            placeholder="Enter city"
-                                            isInvalid={!!errors.city}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.city}
-                                        </Form.Control.Feedback>
+                                    <Form.Group className="form-group">
+                                        <Form.Label htmlFor="city">City</Form.Label>
+                                        <div className="form-control-wrap">
+                                            <Form.Control
+                                                type="text"
+                                                name="city"
+                                                value={formData.city}
+                                                onChange={handleChange}
+                                                placeholder="Enter city"
+                                                isInvalid={!!errors.city}
+                                            />
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.city}
+                                            </Form.Control.Feedback>
+                                        </div>
                                     </Form.Group>
 
                                     {/* Country Field */}
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Country</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="country"
-                                            value={formData.country}
-                                            onChange={handleChange}
-                                            placeholder="Enter country"
-                                            isInvalid={!!errors.country}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.country}
-                                        </Form.Control.Feedback>
+                                    <Form.Group className="form-group">
+                                        <Form.Label htmlFor="country">Country</Form.Label>
+                                        <div className="form-control-wrap">
+                                            <Form.Control
+                                                type="text"
+                                                name="country"
+                                                value={formData.country}
+                                                onChange={handleChange}
+                                                placeholder="Enter country"
+                                                isInvalid={!!errors.country}
+                                            />
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.country}
+                                            </Form.Control.Feedback>
+                                        </div>
                                     </Form.Group>
 
                                     {/* Course Field */}
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Course</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="course"
-                                            value={formData.course}
-                                            onChange={handleChange}
-                                            placeholder="Enter course"
-                                            isInvalid={!!errors.course}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.course}
-                                        </Form.Control.Feedback>
+                                    <Form.Group className="form-group">
+                                        <Form.Label htmlFor="course">Course</Form.Label>
+                                        <div className="form-control-wrap">
+                                            <Form.Control
+                                                type="text"
+                                                name="course"
+                                                value={formData.course}
+                                                onChange={handleChange}
+                                                placeholder="Enter course"
+                                                isInvalid={!!errors.course}
+                                            />
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.course}
+                                            </Form.Control.Feedback>
+                                        </div>
                                     </Form.Group>
 
                                     {/* Year Field */}
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>Year</Form.Label>
-                                        <Form.Control
-                                            type="number"
-                                            name="year"
-                                            value={formData.year}
-                                            onChange={handleChange}
-                                            placeholder="Enter year"
-                                            isInvalid={!!errors.year}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.year}
-                                        </Form.Control.Feedback>
+                                    <Form.Group className="form-group">
+                                        <Form.Label htmlFor="year">Year</Form.Label>
+                                        <div className="form-control-wrap">
+                                            <Form.Control
+                                                type="number"
+                                                name="year"
+                                                value={formData.year}
+                                                onChange={handleChange}
+                                                placeholder="Enter year"
+                                                isInvalid={!!errors.year}
+                                            />
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.year}
+                                            </Form.Control.Feedback>
+                                        </div>
                                     </Form.Group>
 
                                     {/* College Field */}
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>College</Form.Label>
-                                        <Form.Control
-                                            type="text"
-                                            name="college"
-                                            value={formData.college}
-                                            onChange={handleChange}
-                                            placeholder="Enter college"
-                                            isInvalid={!!errors.college}
-                                        />
-                                        <Form.Control.Feedback type="invalid">
-                                            {errors.college}
-                                        </Form.Control.Feedback>
+                                    <Form.Group className="form-group">
+                                        <Form.Label htmlFor="college">College</Form.Label>
+                                        <div className="form-control-wrap">
+                                            <Form.Control
+                                                type="text"
+                                                name="college"
+                                                value={formData.college}
+                                                onChange={handleChange}
+                                                placeholder="Enter college"
+                                                isInvalid={!!errors.college}
+                                            />
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.college}
+                                            </Form.Control.Feedback>
+                                        </div>
                                     </Form.Group>
 
                                     {/* Submit Button */}
-                                    <Button variant="primary" type="submit" disabled={isLoading} block>
+                                    <Button
+                                        variant="primary"
+                                        type="submit"
+                                        className="w-100 mt-3"
+                                        disabled={isLoading}
+                                    >
                                         {isLoading ? 'Processing...' : 'Register Account'}
                                     </Button>
                                 </Form>
-
-                                {/* Login Link */}
-                                <div className="text-center mt-3">
-                                    Already have an account? <Link to="/login">Login</Link>
-                                </div>
-                            </Card.Body>
+                            </div>
                         </Card>
+                        <div className="text-center mt-4">
+                            <p className="small">
+                                Already have an account?{' '}
+                                <Link to="/login" className="link link-primary">
+                                    Login
+                                </Link>
+                            </p>
+                        </div>
                     </Col>
                 </Row>
             </Container>

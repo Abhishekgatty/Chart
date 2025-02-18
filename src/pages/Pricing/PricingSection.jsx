@@ -1,16 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Button, Card, Col, Row } from 'react-bootstrap';
-import { BuildingFill, Check } from 'react-bootstrap-icons';
+import { Check } from 'react-bootstrap-icons';
 import { Section } from '../../layout/global';
 
 const PricingSection = () => {
-    // Hardcoded subscription plans
     const plans = [
         {
             id: 1,
             name: 'Free',
-            price: '$0',
+            price: '₹0',
+            priceAmount: 0,
             features: [
                 'Available on low demand',
                 'Standard response speed',
@@ -20,7 +19,8 @@ const PricingSection = () => {
         {
             id: 2,
             name: 'Monthly',
-            price: '$33 /mo',
+            price: '₹330 /mo',
+            priceAmount: 33000, // Amount in paise
             features: [
                 'Always Available',
                 'Fast response speed',
@@ -30,7 +30,8 @@ const PricingSection = () => {
         {
             id: 3,
             name: 'Quarterly',
-            price: '$90 /3mo',
+            price: '₹900 /3mo',
+            priceAmount: 90000, // Amount in paise
             features: [
                 'Everything from Monthly',
                 'API Integration',
@@ -40,7 +41,8 @@ const PricingSection = () => {
         {
             id: 4,
             name: 'Annual',
-            price: '$300 /yr',
+            price: '₹3000 /yr',
+            priceAmount: 300000, // Amount in paise
             features: [
                 'Everything from Quarterly',
                 'Priority support',
@@ -49,57 +51,67 @@ const PricingSection = () => {
         }
     ];
 
-    // State for subscription management
-    const [currentPlan, setCurrentPlan] = useState('Free'); // Default to "Free"
+    const [currentPlan, setCurrentPlan] = useState('Free');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
 
-    // Simulated userId (replace this with actual user ID from authentication)
-    const userId = 1; // Replace with dynamic user ID
-
-    // Fetch current subscription status
     useEffect(() => {
-        const fetchSubscription = async () => {
-            try {
-                const response = await axios.get(
-                    `https://4b9d-106-51-211-140.ngrok-free.app/api/users/${userId}/subscriptions`
-                );
-                const subscription = response.data;
-                setCurrentPlan(subscription.subscriptionType || 'Free');
-            } catch (err) {
-                console.error('Error fetching subscription:', err);
-                setError('Failed to load subscription details.');
-            }
-        };
-        fetchSubscription();
-    }, [userId]);
+        // Load Razorpay SDK
+        const script = document.createElement('script');
+        script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        script.async = true;
+        document.body.appendChild(script);
 
-    // Handle subscription upgrade/downgrade
-    const handleSubscription = async (planName) => {
+        return () => {
+            document.body.removeChild(script);
+        };
+    }, []);
+
+    const handleSubscription = async (plan) => {
+        if (plan.name === 'Free') {
+            setCurrentPlan('Free');
+            setSuccessMessage('Successfully subscribed to Free plan.');
+            return;
+        }
+
         setLoading(true);
         setError('');
         setSuccessMessage('');
 
         try {
-            const response = await axios.post(
-                `https://4b9d-106-51-211-140.ngrok-free.app/api/users/${userId}/subscriptions`,
-                { subscriptionType: planName },
-                {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
+            const options = {
+                key: 'rzp_test_eK57VjQhXHjIGR', // Your Razorpay Key ID
+                amount: plan.priceAmount,
+                currency: 'INR',
+                name: 'Optimus Ai',
+                description: `${plan.name} Subscription`,
+                handler: function (response) {
+                    // Handle successful payment
+                    setCurrentPlan(plan.name);
+                    setSuccessMessage(`Successfully subscribed to ${plan.name} plan. Payment ID: ${response.razorpay_payment_id}`);
+                    setLoading(false);
+                },
+                prefill: {
+                    name: 'User Name',
+                    email: 'user@example.com',
+                    contact: '9999999999'
+                },
+                theme: {
+                    color: '#528FF0'
+                },
+                modal: {
+                    ondismiss: function() {
+                        setLoading(false);
                     }
                 }
-            );
+            };
 
-            const subscription = response.data;
-            setCurrentPlan(subscription.subscriptionType);
-            setSuccessMessage(`Successfully subscribed to ${subscription.subscriptionType} plan.`);
+            const razorpay = new window.Razorpay(options);
+            razorpay.open();
         } catch (err) {
             console.error('Subscription error:', err);
-            setError('Failed to update subscription. Please try again.');
-        } finally {
+            setError('Failed to initiate payment. Please try again.');
             setLoading(false);
         }
     };
@@ -140,7 +152,7 @@ const PricingSection = () => {
                                         ) : (
                                             <Button
                                                 variant="outline-primary"
-                                                onClick={() => handleSubscription(plan.name)}
+                                                onClick={() => handleSubscription(plan)}
                                                 disabled={loading}
                                             >
                                                 {loading ? 'Processing...' : `Subscribe to ${plan.name}`}
@@ -153,7 +165,6 @@ const PricingSection = () => {
                     ))}
                 </Row>
 
-                {/* Error/Success Messages */}
                 {error && (
                     <div className="text-danger text-center mt-3">{error}</div>
                 )}

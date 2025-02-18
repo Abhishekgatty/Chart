@@ -10,7 +10,7 @@ const contactList = [
     { id:"uid01", avatar: "/images/avatar/1.jpg", name: 'Jasmine Thompson', handle: '@thompson_jasmine' },
     { id:"uid02", avatar: "/images/avatar/2.jpg", name: 'Konstantin Frank', handle: '@konstantin_frank' },
     { id:"uid03", avatar: "/images/avatar/3.jpg", name: 'Mathias Devos', handle: '@mathias_devos' },
-    { id:"uid04", avatar: "/images/avatar/4.jpg", name: 'Marie George', handle: '@marie_george' },
+    { id:"uid04", avatar: "/images/avatar/4.jpg", name: 'Guest User', handle: '@marie_george' },
     { id:"uid05", avatar: "/images/avatar/5.jpg", name: 'Phillip Burke', handle: '@phillip_burke' }
 ]
 

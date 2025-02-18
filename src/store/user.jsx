@@ -2,26 +2,31 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Default fallback user data (used if API fails)
-const data = {
-    id: "uid999",
-    name: "Marie George",
-    handle: 'marie_george',
-    mail: 'marie@gmail.com',
-    gender: 'female',
-    dob: 'December 15',
-    phone: "0098 4654 554",
-    avatar: "/images/avatar/3.jpg",
-    cover: "/images/cover/2.jpg",
-    bio: "Liked that disco music",
+const defaultUserData = {
+    id: 0, // Default value for integer ID
+    userName: "guest", // Default username
+    name: "Guest User", // Default name
+    email: "", // Default email
+    country: "Not provided", // Default country
+    city: "Not provided", // Default city
+    course: "Not provided", // Default course
+    year: 0, // Default year
+    college: "Not provided", // Default college
+    subscriptions: [], // Empty array for subscriptions
+    conversations: [] // Empty array for conversations
 };
 
 // Base URL for the API
-const BASE_URL = 'https://4b9d-106-51-211-140.ngrok-free.app/api/users';
+const BASE_URL = 'https://a4dd-106-51-211-140.ngrok-free.app/';
 
-// Fetch user data by ID
-export const fetchUserData = async (userId) => {
+// Fetch user data using sessionId
+export const fetchUserData = async (sessionId) => {
     try {
-        const response = await axios.get(`${BASE_URL}/${userId}`);
+        const response = await axios.get(`${BASE_URL}/api/users/user`, {
+            headers: {
+                'sessionId': sessionId // Pass sessionId in the header
+            }
+        });
         return response.data; // Return the user data from the API
     } catch (error) {
         console.error('Error fetching user data:', error);
@@ -30,29 +35,33 @@ export const fetchUserData = async (userId) => {
 };
 
 // Custom hook to manage user data
-export const useUserData = (userId) => {
-    const [userData, setUserData] = useState(null);
+export const useUserData = () => {
+    const [userData, setUserData] = useState(defaultUserData);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const data = await fetchUserData(userId);
+                const sessionId = localStorage.getItem('sessionId'); // Retrieve sessionId from localStorage
+                if (!sessionId) {
+                    throw new Error('Session ID not found.');
+                }
+
+                const data = await fetchUserData(sessionId);
                 setUserData(data); // Set fetched user data
             } catch (err) {
                 setError(err.message); // Handle errors
-                setUserData(data); // Fallback to default data
+                setUserData(defaultUserData); // Fallback to default data
             } finally {
                 setLoading(false); // Stop loading
             }
         };
 
         fetchUser();
-    }, [userId]);
+    }, []);
 
     return { userData, loading, error };
 };
 
-// Default export for compatibility with existing components
-export default data;
+export default defaultUserData;

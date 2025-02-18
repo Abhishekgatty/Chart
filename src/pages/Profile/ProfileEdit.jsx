@@ -1,89 +1,103 @@
-import React from 'react'
-import { Row, Col, Form, Button } from 'react-bootstrap'
-import user from '../../store/user'
-import { Media } from '../../components'
-import { Facebook, Google} from 'react-bootstrap-icons'
-const ProfileEdit = () => {
-  return (
-    <Row className="gy-5">
-        <Col xs="12">
-            <Row className="gy-4">
-                <Col lg="3">
-                    <h6>Personal Information</h6>
-                    <div className="tyn-subtext">Edit Your personal Info</div>
-                </Col>
-                <Col lg="9">
-                    <Row className="g-gs">
-                        <Col lg="6">
-                            <div className="form-group">
-                                <Form.Label htmlFor="firstName">First Name</Form.Label>
-                                <div className="form-control-wrap">
-                                    <Form.Control type="text" id="firstName" placeholder="First Name" defaultValue={user.name.split(" ")[0]} />
-                                </div>
-                            </div>
-                        </Col>
-                        <Col lg="6">
-                            <div className="form-group">
-                                <Form.Label htmlFor="lastName">Last Name</Form.Label>
-                                <div className="form-control-wrap">
-                                    <Form.Control type="text" id="lastName" placeholder="Last Name" defaultValue={user.name.split(" ")[user.name.split(" ").length - 1]} />
-                                </div>
-                            </div>
-                        </Col>
-                        <Col xs="12">
-                            <div className="form-group">
-                                <Form.Label className="d-flex" htmlFor="primaryEmail">Main Email <span className="small ms-2 text-success">Varified</span> <a href="#" className="link link-primary ms-auto">Add Email</a></Form.Label>
-                                <div className="form-control-wrap">
-                                    <Form.Control type="text" id="primaryEmail" disabled placeholder="Primary Email" defaultValue={user.mail} />
-                                </div>
-                                <div className="tyn-subtext mt-2">You need to have at least one email connected with your account</div>
-                            </div>
-                        </Col>
-                        <Col lg="6">
-                            <div className="form-group">
-                                <Form.Label htmlFor="phoneNumber">Phone Number</Form.Label>
-                                <div className="form-control-wrap">
-                                    <Form.Control type="text" id="phoneNumber" placeholder="Your Number" defaultValue={user.phone} />
-                                </div>
-                            </div>
-                        </Col>
-                        <Col lg="6">
-                            <div className="form-group">
-                                <Form.Label htmlFor="phoneNumber">Country</Form.Label>
-                                <div className="form-control-wrap">
-                                    <Form.Select defaultValue="Armenia">
-                                        <option value="Afghanistan">Afghanistan</option>
-                                        <option value="Åland Islands">Åland Islands</option>
-                                        <option value="Albania">Albania</option>
-                                        <option value="Algeria">Algeria</option>
-                                        <option value="American Samoa">American Samoa</option>
-                                        <option value="Andorra">Andorra</option>
-                                        <option value="Angola">Angola</option>
-                                        <option value="Anguilla">Anguilla</option>
-                                        <option value="Antarctica">Antarctica</option>
-                                        <option value="Antigua and Barbuda">Antigua and Barbuda</option>
-                                        <option value="Argentina">Argentina</option>
-                                        <option value="Armenia">Armenia</option>
-                                        <option value="Aruba">Aruba</option>
-                                        <option value="Australia">Australia</option>
-                                        <option value="Austria">Austria</option>
-                                        <option value="Azerbaijan">Azerbaijan</option>
-                                        <option value="Bahamas">Bahamas</option>
-                                        <option value="Bahrain">Bahrain</option>
-                                        <option value="Bangladesh">Bangladesh</option>
-                                        <option value="Barbados">Barbados</option>
-                                        <option value="Belarus">Belarus</option>
-                                        <option value="Belgium">Belgium</option>
-                                    </Form.Select>
-                                </div>
-                            </div>
-                        </Col>
-                    </Row>
-                </Col>
-            </Row>
-        </Col>
-    </Row>
-  )
-}
+import React, { useState } from 'react';
+import { updateUserData } from '../../api/user';
+import { useUserData } from '../../store/user';
 
-export default ProfileEdit
+const ProfileEdit = () => {
+    const { userData } = useUserData();
+    const [formData, setFormData] = useState(userData);
+
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await updateUserData(localStorage.getItem('sessionId'), formData);
+            alert('Profile updated successfully!');
+        } catch (error) {
+            alert('Failed to update profile.');
+        }
+    };
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <div className="mb-3">
+                <label>Name:</label>
+                <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className="form-control"
+                />
+            </div>
+            <div className="mb-3">
+                <label>Email:</label>
+                <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    className="form-control"
+                />
+            </div>
+            <div className="mb-3">
+                <label>City:</label>
+                <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    className="form-control"
+                />
+            </div>
+            <div className="mb-3">
+                <label>Country:</label>
+                <input
+                    type="text"
+                    name="country"
+                    value={formData.country}
+                    onChange={handleChange}
+                    className="form-control"
+                />
+            </div>
+            <div className="mb-3">
+                <label>Course:</label>
+                <input
+                    type="text"
+                    name="course"
+                    value={formData.course}
+                    onChange={handleChange}
+                    className="form-control"
+                />
+            </div>
+            <div className="mb-3">
+                <label>Year:</label>
+                <input
+                    type="number"
+                    name="year"
+                    value={formData.year}
+                    onChange={handleChange}
+                    className="form-control"
+                />
+            </div>
+            <div className="mb-3">
+                <label>College:</label>
+                <input
+                    type="text"
+                    name="college"
+                    value={formData.college}
+                    onChange={handleChange}
+                    className="form-control"
+                />
+            </div>
+            <button type="submit" className="btn btn-primary">
+                Save Changes
+            </button>
+        </form>
+    );
+};
+
+export default ProfileEdit;

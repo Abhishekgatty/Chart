@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL for the API
-const BASE_URL = 'https://4b9d-106-51-211-140.ngrok-free.app/api/users';
+const BASE_URL = 'https://a4dd-106-51-211-140.ngrok-free.appapi/users';
 
 // Fetch user data by ID
 export const fetchUserData = async (userId) => {

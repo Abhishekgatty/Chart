@@ -609,7 +609,7 @@ const data = [
     },
     {
         id: 'uid04',
-        name:'Marie George',
+        name:'Guest User',
         handle: 'marie_george',
         mail: 'marie@gmail.com',
         avatar: '/images/avatar/4.jpg',
@@ -618,7 +618,7 @@ const data = [
         status: 'active',
         last:'2 days',
         contacts:['uid11','uid09','uid07','uid01','uid03'],
-        bio:"Marie George, a renowned artist whose vibrant abstract paintings have captured the essence of human emotion and pushed the boundaries of modern art.",
+        bio:"Guest User, a renowned artist whose vibrant abstract paintings have captured the essence of human emotion and pushed the boundaries of modern art.",
         gender:"male",
         dob:"December 12",
         phone:"+98 257 6985",
