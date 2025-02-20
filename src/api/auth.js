@@ -1,13 +1,7 @@
 import axios from 'axios';
 const BASE_URL = 'http://192.168.68.100:8080/chatbotservices';
 
-<<<<<<< HEAD
 // Login User
-=======
-const BASE_URL = process.env.REACT_APP_BASE_URL; // Replace with your actual backend URL
-
-// Login
->>>>>>> cec177c0ad4be6a62f953016ba847476e3b4b899
 export const loginUser = async (username, password) => {
     try {
         console.log("Sending login request to:", `${BASE_URL}/api/auth/login`);

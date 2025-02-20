@@ -40,9 +40,5 @@
     "sass": "1.77.6",
     "vite": "^5.0.8"
   },
-<<<<<<< HEAD
   "proxy": "http://192.168.68.100:8080/chatbotservices"
-=======
-  "proxy": "https://a4dd-106-51-211-140.ngrok-free.app/"
->>>>>>> cec177c0ad4be6a62f953016ba847476e3b4b899
 }
