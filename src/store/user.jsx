@@ -17,7 +17,11 @@ const defaultUserData = {
 };
 
 // Base URL for the API
+<<<<<<< HEAD
 const BASE_URL = 'http://192.168.68.100:8080/chatbotservices';
+=======
+const BASE_URL = process.env.REACT_APP_BASE_URL;
+>>>>>>> cec177c0ad4be6a62f953016ba847476e3b4b899
 
 // Fetch user data using sessionId
 export const fetchUserData = async (sessionId) => {
