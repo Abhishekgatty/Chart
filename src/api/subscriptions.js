@@ -1,10 +1,6 @@
 import axios from 'axios';
 
-<<<<<<< HEAD
-const BASE_URL = process.env.REACT_BASE_URL;
-=======
-const BASE_URL = process.env.REACT_APP_BASE_URL;
->>>>>>> cec177c0ad4be6a62f953016ba847476e3b4b899
+const BASE_URL = 'http://204.12.227.152:9090/chatbotservices';
 
 // Get Subscription Details
 export const getSubscriptionDetails = async (sessionId) => {

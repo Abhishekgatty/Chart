@@ -40,5 +40,5 @@
     "sass": "1.77.6",
     "vite": "^5.0.8"
   },
-  "proxy": "http://192.168.68.100:8080/chatbotservices"
+  "proxy": "http://204.12.227.152:9090/chatbotservices"
 }

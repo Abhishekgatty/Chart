@@ -25,13 +25,46 @@ function Chatbot() {
 
     const [currentPlan, setCurrentPlan] = useState('Free');
 
+
+    // Create a new conversation
+    const createNewConversation = async () => {
+        try {
+            const sessionId = localStorage.getItem('sessionId');
+            const newConversation = {
+                id: Date.now().toString(), // Generate a unique ID
+                title: `Chat ${conversations.length + 1}`,
+                messages: [] // Initialize with an empty messages array
+            };
+
+            // Do not save the conversation immediately; just update the state
+            setSelected(newConversation);
+            setShowMain(true);
+            navigate(`/chatbot?id=${newConversation.id}`);
+            return newConversation;
+        } catch (err) {
+            console.error('Error creating new conversation:', err);
+            setError('Failed to create new conversation');
+            return null;
+        }
+    };
     // Fetch conversations from API
     const fetchConversations = async () => {
         try {
             setLoading(true);
-            const sessionId = localStorage.getItem('sessionId'); // Assuming you store sessionId in localStorage
+            const sessionId = localStorage.getItem('sessionId');
             const response = await getConversations(sessionId);
-            setConversations(response.slice(0, 5)); // Limit to 10 conversations
+
+            // Ensure response is an array
+            if (Array.isArray(response)) {
+                setConversations(response.slice(0, 5)); // Limit to 5 conversations
+                if (response.length === 0) {
+                    await createNewConversation();
+                }
+            } else {
+                console.error('Expected an array but got:', response);
+                setConversations([]); // Fallback to an empty array
+                await createNewConversation();
+            }
             setError(null);
         } catch (err) {
             setError('Failed to load conversations');
@@ -41,41 +74,117 @@ function Chatbot() {
         }
     };
 
+
     // Handle sending new message
     const handleSendMessage = async () => {
-        if (!inputMessage.trim() || !selected) return;
+        console.log("Sending message..."); // Debugging log
 
-        const newMessage = {
-            who: 'user',
-            content: inputMessage,
-            timestamp: new Date().toISOString()
+        // 1️⃣ Check if inputMessage is empty
+        if (!inputMessage.trim()) {
+            console.error("Message is empty");
+            return;
+        }
+
+        // 2️⃣ Ensure selected conversation exists, else create a new one
+        if (!selected) {
+            const newConversation = await createNewConversation();
+            if (!newConversation) return;
+        }
+
+        // 3️⃣ Create user message object
+        const userMessage = {
+            user: inputMessage, // Correct API format
+            bot: ""             // Placeholder for bot response
         };
 
-        const botMessage = {
-            who: 'bot',
-            content: 'We are offline, try again later',
-            timestamp: new Date().toISOString()
+        // 4️⃣ Update UI immediately with the user's message
+        const tempConversation = {
+            ...selected,
+            messages: [...(selected.messages || []), userMessage] // Ensure messages array exists
         };
+        setSelected(tempConversation);
+        setInputMessage("");
 
         try {
-            const sessionId = localStorage.getItem('sessionId');
-            const updatedConversation = {
-                ...selected,
-                chats: [...selected.chats, newMessage, botMessage]
+            const sessionId = localStorage.getItem("sessionId");
+
+            // 5️⃣ Get bot response
+            const botResponse = await getBotResponse(sessionId, inputMessage);
+
+            // 6️⃣ Create bot message object with correct timestamp
+            const botMessage = {
+                user: inputMessage,
+                bot: botResponse || "We are offline, try again later"
             };
 
+            // 7️⃣ Update conversation with bot response
+            const updatedConversation = {
+                id: Number(selected.id || Date.now()), // Ensure ID is a number
+                messages: [...(selected.messages || []), botMessage], // Correct array
+                timestamp: new Date().toISOString() // Ensure timestamp format
+            };
+
+            // 8️⃣ Save conversation to backend AFTER bot response
             await saveConversation(sessionId, updatedConversation);
             setSelected(updatedConversation);
-            setInputMessage('');
-            
-            // Refresh conversations list
+
+            // 9️⃣ Refresh conversation list
             fetchConversations();
         } catch (err) {
-            console.error('Error saving message:', err);
-            setError('Failed to send message');
+            console.error("Error sending message:", err);
+            setError("Failed to send message");
+
+            // Handle error state in UI
+            const errorBotMessage = {
+                user: inputMessage,
+                bot: "Sorry, there was an error processing your message. Please try again."
+            };
+
+            const conversationWithError = {
+                ...selected,
+                messages: [...(selected.messages || []), errorBotMessage]
+            };
+            setSelected(conversationWithError);
         }
     };
 
+    // Add this function to your API calls
+    const getBotResponse = async (sessionId, message) => {
+        try {
+            const response = await fetch('/api/bot/response', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Session-ID': sessionId
+                },
+                body: JSON.stringify({ message })
+            });
+
+            // Check if the response is OK (status code 200-299)
+            if (!response.ok) {
+                if (response.status === 404) {
+                    // Handle 404 error specifically
+                    throw new Error('Bot API not found');
+                } else {
+                    // Handle other HTTP errors
+                    throw new Error('Failed to get bot response');
+                }
+            }
+
+            const data = await response.json();
+            return data.response; // Return the bot's response
+        } catch (error) {
+            console.error('Error getting bot response:', error);
+
+            // If the API is unavailable (e.g., 404), return a default message
+            if (error.message === 'Bot API not found') {
+                return "We are offline, try again later";
+            }
+
+            // For other errors, rethrow the error
+            throw error;
+        }
+    };
     // Initial load of conversations and user plan
     useEffect(() => {
         fetchConversations();
@@ -89,11 +198,11 @@ function Chatbot() {
         if (id && conversations.length > 0) {
             const selectedConversation = conversations.find((item) => item.id === id);
             setSelected(selectedConversation);
-        } else if (conversations.length > 0) {
-            navigate(`/chatbot?id=${conversations[0].id}`);
         }
     }, [searchParams, conversations]);
 
+    // Rest of the component remains the same...
+    // (Keep all the existing code for rendering, SimpleBar, etc.)
     // Scroll to bottom of chat
     useEffect(() => {
         if (chatWindow.current) {
@@ -121,9 +230,9 @@ function Chatbot() {
                     <div className="tyn-aside-head-tools">
                         <ul className="tyn-list-inline gap gap-3">
                             <li>
-                                <Button 
-                                    variant="light" 
-                                    size="md" 
+                                <Button
+                                    variant="light"
+                                    size="md"
                                     className="btn-icon btn-pill"
                                     onClick={() => {
                                         // Handle creating new conversation
@@ -138,31 +247,35 @@ function Chatbot() {
                 </div>
                 <SimpleBar className="tyn-aside-body">
                     <ul className="tyn-aside-list">
-                        {conversations.map((item, index) => (
-                            <li
-                                key={index}
-                                className={classNames({
-                                    'tyn-aside-item': true,
-                                    active: item.id === selected?.id,
-                                })}
-                                onClick={(ev) => {
-                                    ev.preventDefault();
-                                    if (!ev.target.closest('.tyn-aside-item-option')) {
-                                        navigate(`/chatbot?id=${item.id}`);
-                                        setShowMain(true);
-                                    }
-                                }}
-                            >
-                                <Media.Group>
-                                    <Media size="sm">
-                                        <ChatRightTextFill />
-                                    </Media>
-                                    <Media.Col>
-                                        <div className="content">{item.title}</div>
-                                    </Media.Col>
-                                </Media.Group>
-                            </li>
-                        ))}
+                        {Array.isArray(conversations) && conversations.length > 0 ? (
+                            conversations.map((item, index) => (
+                                <li
+                                    key={index}
+                                    className={classNames({
+                                        'tyn-aside-item': true,
+                                        active: item.id === selected?.id,
+                                    })}
+                                    onClick={(ev) => {
+                                        ev.preventDefault();
+                                        if (!ev.target.closest('.tyn-aside-item-option')) {
+                                            navigate(`/chatbot?id=${item.id}`);
+                                            setShowMain(true);
+                                        }
+                                    }}
+                                >
+                                    <Media.Group>
+                                        <Media size="sm">
+                                            <ChatRightTextFill />
+                                        </Media>
+                                        <Media.Col>
+                                            <div className="content">{item.title}</div>
+                                        </Media.Col>
+                                    </Media.Group>
+                                </li>
+                            ))
+                        ) : (
+                            <div>No conversations found.</div>
+                        )}
                     </ul>
                 </SimpleBar>
                 <div className="tyn-aside-foot">
@@ -187,9 +300,9 @@ function Chatbot() {
                                 )}
                             </Col>
                             <Col as="li" xs="6">
-                                <Button 
-                                    variant="light" 
-                                    size="lg" 
+                                <Button
+                                    variant="light"
+                                    size="lg"
                                     className="w-100 flex-column py-2 pt-3"
                                     onClick={() => {
                                         // Handle clearing archive
@@ -296,9 +409,9 @@ function Chatbot() {
                         />
                         <ul className="tyn-list-inline me-n2 my-1">
                             <li>
-                                <Button 
-                                    variant="white" 
-                                    size="md" 
+                                <Button
+                                    variant="white"
+                                    size="md"
                                     className="btn-icon btn-pill"
                                     onClick={handleSendMessage}
                                 >

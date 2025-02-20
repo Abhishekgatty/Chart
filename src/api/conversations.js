@@ -1,11 +1,18 @@
 import axios from 'axios';
 
-const BASE_URL = "http://192.168.68.100:8080/chatbotservices";
+const BASE_URL = 'http://204.12.227.152:9090/chatbotservices';
 
 // Save Conversation
 export const saveConversation = async (sessionId, conversationData) => {
     try {
-        const response = await axios.post(`${BASE_URL}/api/conversations/saveConversation`, conversationData, {
+        // Transform the conversation data to match the expected format
+        const payload = {
+            id: Number(conversationData.id), // Convert ID to a number
+            messages: conversationData.messages || [], // Ensure messages exist
+            timestamp: new Date().toISOString() // Add current timestamp
+        };
+
+        const response = await axios.post(`${BASE_URL}/api/conversations/saveConversation`, payload, {
             headers: { sessionId }
         });
         return response.data;
