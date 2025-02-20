@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL for the API
-const BASE_URL = 'https://a4dd-106-51-211-140.ngrok-free.appapi/users';
+const BASE_URL = 'http://192.168.68.100:8080/chatbotservices';
 
 // Fetch user data by ID
 export const fetchUserData = async (userId) => {

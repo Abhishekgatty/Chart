@@ -3,8 +3,7 @@ import { Media } from '../../components';
 import { useUserData } from '../../store/user';
 
 const ProfileHead = () => {
-    const { userData, loading, error } = useUserData();
-
+    const { userData, loading, error } = useUserData();    
     if (loading) {
         return <p>Loading...</p>;
     }

@@ -25,7 +25,6 @@ const Login = () => {
 
   // State for error messages
   const [errors, setErrors] = useState({});
-
   // State for loading and submission status
   const [isLoading, setIsLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
@@ -66,14 +65,15 @@ const Login = () => {
       const loginResponse = await loginUser(formData.username, formData.password);
       console.log('Login response:', loginResponse);
 
-      const { sessionId } = loginResponse;
-      login(sessionId);
+      // Store the session ID in local storage
+      localStorage.setItem('sessionId', loginResponse.sessionId);
 
+      // Log the user in and redirect
+      login(loginResponse.sessionId);
       setSubmitStatus({
         type: 'success',
         message: 'Login successful',
       });
-
       setTimeout(() => navigate('/profile'), 2000);
     } catch (error) {
       console.error('Login error:', error);

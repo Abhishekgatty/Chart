@@ -17,7 +17,7 @@ const defaultUserData = {
 };
 
 // Base URL for the API
-const BASE_URL = 'https://a4dd-106-51-211-140.ngrok-free.app/';
+const BASE_URL = 'http://192.168.68.100:8080/chatbotservices';
 
 // Fetch user data using sessionId
 export const fetchUserData = async (sessionId) => {
@@ -49,7 +49,7 @@ export const useUserData = () => {
                 }
 
                 const data = await fetchUserData(sessionId);
-                setUserData(data); // Set fetched user data
+                setUserData(data);
             } catch (err) {
                 setError(err.message); // Handle errors
                 setUserData(defaultUserData); // Fallback to default data
