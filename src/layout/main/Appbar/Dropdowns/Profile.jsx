@@ -11,7 +11,8 @@ import {
 import { useSearchParams } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import classNames from 'classnames';
-import { AuthContext } from '../../../../store/AuthContext'; // Import AuthContext
+import { AuthContext } from '../../../../store/AuthContext';
+import { useUserData } from '../../../../store/user';
 
 // Default menu items for logged-in users
 const loggedInData = [
@@ -19,7 +20,7 @@ const loggedInData = [
   { text: "Settings", icon: <Gear />, link: "/profile?tab=profile-edit" },
   { text: "Change Password", icon: <Unlock />, link: "/profile?tab=profile-security" },
   { divider: true },
-  { text: "Logout", icon: <Power />, link: "/login" },
+  { text: "Logout", icon: <Power />, link: "/logout" },
 ];
 
 // Menu item for non-logged-in users
@@ -37,6 +38,9 @@ function Profile() {
   // Access authentication state from AuthContext
   const { sessionId, logout } = React.useContext(AuthContext);
 
+  // Fetch user data only if sessionId exists
+  const { userData, loading, error } = useUserData(sessionId || null);
+
   useEffect(() => {
     setActiveLink(searchParams.get('tab'));
   }, [searchParams]);
@@ -46,37 +50,60 @@ function Profile() {
     if (link === "/login") {
       navigate(link);
     } else if (link === "/logout") {
-      logout(); // Call logout function from AuthContext
+      logout();
       navigate("/login");
     } else {
       navigate(link);
     }
   };
 
+  // Handle session expiration
+  useEffect(() => {
+    if (sessionId && error === "Failed to load user data.") {
+      // Session expired or invalid
+      logout(); // Clear session
+      navigate("/login"); // Redirect to login
+    }
+  }, [sessionId, error, logout, navigate]);
+
+  // Determine menu items based on session validity
+  const menuItems = sessionId && !error ? loggedInData : loggedOutData;
+
+  // Render loading state only when fetching user data (logged in)
+  if (sessionId && loading) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <Dropdown className="d-inline-flex">
       <Dropdown.Toggle as={DropdownToggle} autoClose="outside">
         <Media size="lg" shape="circle">
-          <Image staticImage src='/images/avatar/3.jpg' />
+          <Image 
+            staticImage 
+            src={sessionId && userData?.avatar ? userData.avatar : '/images/avatar/3.jpg'} 
+          />
         </Media>
       </Dropdown.Toggle>
       <Dropdown.Menu as={DropdownMenu} align="end" style={{ marginTop: "10px" }}>
         <div className="dropdown-gap">
           <Media.Group>
             <Media size="lg">
-              <Image staticImage src='/images/avatar/3.jpg' />
+              <Image 
+                staticImage 
+                src={sessionId && userData?.avatar ? userData.avatar : '/images/avatar/3.jpg'} 
+              />
             </Media>
             <Media.Col>
               <Media.Row>
-                <h6 className="name">{sessionId ? "Guest User" : "Not Logged In"}</h6>
-                {sessionId && (
+                <h6 className="name">{sessionId && userData?.name ? userData.name : "Guest User"}</h6>
+                {sessionId && !error && (
                   <div className="indicator varified">
                     <CheckCircleFill />
                   </div>
                 )}
               </Media.Row>
               <Media.Row>
-                <p className="content">Liked that disco music</p>
+                <p className="content">{sessionId && userData?.bio ? userData.bio : "Liked that disco music"}</p>
               </Media.Row>
             </Media.Col>
           </Media.Group>
@@ -122,7 +149,7 @@ function Profile() {
           </div>
         </div>
         <ul className="tyn-list-links">
-          {(sessionId ? loggedInData : loggedOutData).map((item, index) => (
+          {menuItems.map((item, index) => (
             <React.Fragment key={index}>
               {item.divider && <li className="dropdown-divider"></li>}
               {!item.divider && !item.heading && (

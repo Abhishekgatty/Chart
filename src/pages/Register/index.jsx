@@ -13,6 +13,7 @@ function Register() {
         userName: '',
         email: '',
         password: '',
+        repeatPassword: '', // Added repeat password field
         name: '',
         city: '',
         country: '',
@@ -44,6 +45,10 @@ function Register() {
         if (!formData.userName) newErrors.userName = 'Username is required';
         if (!formData.email) newErrors.email = 'Email is required';
         if (!formData.password) newErrors.password = 'Password is required';
+        if (!formData.repeatPassword) newErrors.repeatPassword = 'Repeat Password is required';
+        if (formData.password && formData.repeatPassword && formData.password !== formData.repeatPassword) {
+            newErrors.repeatPassword = 'Passwords do not match';
+        }
         if (!formData.name) newErrors.name = 'Name is required';
         if (!formData.city) newErrors.city = 'City is required';
         if (!formData.country) newErrors.country = 'Country is required';
@@ -68,10 +73,17 @@ function Register() {
         setSubmitStatus({ type: '', message: '' });
 
         try {
-            // Flatten the payload to match the backend's expected structure
+            // Prepare data for API (excluding repeatPassword)
             const submitData = {
-                ...formData,
-                year: parseInt(formData.year), // Ensure year is parsed as an integer
+                userName: formData.userName,
+                email: formData.email,
+                password: formData.password, // Only send password, not repeatPassword
+                name: formData.name,
+                city: formData.city,
+                country: formData.country,
+                course: formData.course,
+                year: parseInt(formData.year),
+                college: formData.college,
                 subscriptionName: 'Free'
             };
 
@@ -89,6 +101,7 @@ function Register() {
                 userName: '',
                 email: '',
                 password: '',
+                repeatPassword: '',
                 name: '',
                 city: '',
                 country: '',
@@ -188,6 +201,24 @@ function Register() {
                                             />
                                             <Form.Control.Feedback type="invalid">
                                                 {errors.password}
+                                            </Form.Control.Feedback>
+                                        </div>
+                                    </Form.Group>
+
+                                    {/* Repeat Password Field */}
+                                    <Form.Group className="form-group">
+                                        <Form.Label htmlFor="repeatPassword">Repeat Password</Form.Label>
+                                        <div className="form-control-wrap">
+                                            <Form.Control
+                                                type="password"
+                                                name="repeatPassword"
+                                                value={formData.repeatPassword}
+                                                onChange={handleChange}
+                                                placeholder="Repeat password"
+                                                isInvalid={!!errors.repeatPassword}
+                                            />
+                                            <Form.Control.Feedback type="invalid">
+                                                {errors.repeatPassword}
                                             </Form.Control.Feedback>
                                         </div>
                                     </Form.Group>

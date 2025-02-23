@@ -6,37 +6,40 @@ import SimpleBar from 'simplebar-react';
 import { Media } from '../../components';
 import { Link } from 'react-router-dom';
 import Markdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getConversations, saveConversation } from '../../api/conversations';
+import { getConversations } from '../../api/conversations';
 import classNames from 'classnames';
+
+const CHATBOT_BASE_URL = 'http://204.12.227.152:8000';
 
 function Chatbot() {
     let [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [conversations, setConversations] = useState([]);
-    const [selected, setSelected] = useState();
-    const [showMain, setShowMain] = useState(searchParams.get('id') !== null && true);
+    const [selected, setSelected] = useState(null);
+    const [showMain, setShowMain] = useState(searchParams.get('id') !== null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [inputMessage, setInputMessage] = useState('');
+    const [isBotTyping, setIsBotTyping] = useState(false);
     const chatWindow = useRef(null);
-
     const [currentPlan, setCurrentPlan] = useState('Free');
 
+    const userInfo = {
+        user_id: 1,
+        user_department: 'Nursing',
+        user_year: 4,
+        user_semester: 2
+    };
 
-    // Create a new conversation
     const createNewConversation = async () => {
         try {
             const sessionId = localStorage.getItem('sessionId');
             const newConversation = {
-                id: Date.now().toString(), // Generate a unique ID
+                id: Date.now().toString(),
                 title: `Chat ${conversations.length + 1}`,
-                messages: [] // Initialize with an empty messages array
+                messages: []
             };
-
-            // Do not save the conversation immediately; just update the state
             setSelected(newConversation);
             setShowMain(true);
             navigate(`/chatbot?id=${newConversation.id}`);
@@ -47,22 +50,20 @@ function Chatbot() {
             return null;
         }
     };
-    // Fetch conversations from API
+
     const fetchConversations = async () => {
         try {
             setLoading(true);
             const sessionId = localStorage.getItem('sessionId');
             const response = await getConversations(sessionId);
-
-            // Ensure response is an array
+            
             if (Array.isArray(response)) {
-                setConversations(response.slice(0, 5)); // Limit to 5 conversations
+                setConversations(response.slice(0, 5));
                 if (response.length === 0) {
                     await createNewConversation();
                 }
             } else {
-                console.error('Expected an array but got:', response);
-                setConversations([]); // Fallback to an empty array
+                setConversations([]);
                 await createNewConversation();
             }
             setError(null);
@@ -74,136 +75,99 @@ function Chatbot() {
         }
     };
 
+    const handleSendMessage = async (messageInput = null) => {
+        const messageToSend = messageInput || inputMessage;
+        if (!messageToSend.trim()) return;
 
-    // Handle sending new message
-    const handleSendMessage = async () => {
-        console.log("Sending message..."); // Debugging log
-
-        // 1️⃣ Check if inputMessage is empty
-        if (!inputMessage.trim()) {
-            console.error("Message is empty");
-            return;
+        let currentConversation = selected;
+        if (!currentConversation) {
+            currentConversation = await createNewConversation();
+            if (!currentConversation) return;
+            setSelected(currentConversation);
+            await new Promise(resolve => setTimeout(resolve, 0));
         }
 
-        // 2️⃣ Ensure selected conversation exists, else create a new one
-        if (!selected) {
-            const newConversation = await createNewConversation();
-            if (!newConversation) return;
-        }
+        console.log('handleSendMessage - currentConversation:', currentConversation);
 
-        // 3️⃣ Create user message object
-        const userMessage = {
-            user: inputMessage, // Correct API format
-            bot: ""             // Placeholder for bot response
-        };
-
-        // 4️⃣ Update UI immediately with the user's message
+        const userMessage = { role: 'user', content: messageToSend };
+        const updatedMessages = currentConversation.messages ? [...currentConversation.messages, userMessage] : [userMessage];
         const tempConversation = {
-            ...selected,
-            messages: [...(selected.messages || []), userMessage] // Ensure messages array exists
+            ...currentConversation,
+            messages: updatedMessages
         };
         setSelected(tempConversation);
-        setInputMessage("");
-
-        try {
-            const sessionId = localStorage.getItem("sessionId");
-
-            // 5️⃣ Get bot response
-            const botResponse = await getBotResponse(sessionId, inputMessage);
-
-            // 6️⃣ Create bot message object with correct timestamp
-            const botMessage = {
-                user: inputMessage,
-                bot: botResponse || "We are offline, try again later"
-            };
-
-            // 7️⃣ Update conversation with bot response
-            const updatedConversation = {
-                id: Number(selected.id || Date.now()), // Ensure ID is a number
-                messages: [...(selected.messages || []), botMessage], // Correct array
-                timestamp: new Date().toISOString() // Ensure timestamp format
-            };
-
-            // 8️⃣ Save conversation to backend AFTER bot response
-            await saveConversation(sessionId, updatedConversation);
-            setSelected(updatedConversation);
-
-            // 9️⃣ Refresh conversation list
-            fetchConversations();
-        } catch (err) {
-            console.error("Error sending message:", err);
-            setError("Failed to send message");
-
-            // Handle error state in UI
-            const errorBotMessage = {
-                user: inputMessage,
-                bot: "Sorry, there was an error processing your message. Please try again."
-            };
-
-            const conversationWithError = {
-                ...selected,
-                messages: [...(selected.messages || []), errorBotMessage]
-            };
-            setSelected(conversationWithError);
+        
+        if (!messageInput) {
+            setInputMessage('');
         }
-    };
 
-    // Add this function to your API calls
-    const getBotResponse = async (sessionId, message) => {
+        setIsBotTyping(true);
+
         try {
-            const response = await fetch('/api/bot/response', {
+            const sessionId = localStorage.getItem('sessionId');
+            if (!sessionId) {
+                throw new Error('No session ID found');
+            }
+
+            const url = `${CHATBOT_BASE_URL}/chatbot/send_message?user_id=${userInfo.user_id}&session_id=${encodeURIComponent(sessionId)}&user_department=${encodeURIComponent(userInfo.user_department)}&user_year=${encodeURIComponent(userInfo.user_year)}&user_semester=${userInfo.user_semester}&message=${encodeURIComponent(messageToSend)}`;
+
+            console.log('Sending request to:', url);
+
+            const response = await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Session-ID': sessionId
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ message })
+                body: ''
             });
 
-            // Check if the response is OK (status code 200-299)
             if (!response.ok) {
-                if (response.status === 404) {
-                    // Handle 404 error specifically
-                    throw new Error('Bot API not found');
-                } else {
-                    // Handle other HTTP errors
-                    throw new Error('Failed to get bot response');
-                }
+                const errorData = await response.json();
+                throw new Error(`HTTP error! status: ${response.status}, detail: ${JSON.stringify(errorData)}`);
             }
 
             const data = await response.json();
-            return data.response; // Return the bot's response
-        } catch (error) {
-            console.error('Error getting bot response:', error);
+            console.log('Received response:', data);
 
-            // If the API is unavailable (e.g., 404), return a default message
-            if (error.message === 'Bot API not found') {
-                return "We are offline, try again later";
-            }
-
-            // For other errors, rethrow the error
-            throw error;
+            const botMessage = { role: 'bot', content: data.response || "Error getting response" };
+            const updatedConversation = {
+                ...tempConversation,
+                messages: [...tempConversation.messages, botMessage],
+                timestamp: new Date().toISOString()
+            };
+            
+            setSelected(updatedConversation);
+        } catch (err) {
+            console.error("Error sending message:", err);
+            setError(err.message);
+            const errorMessage = { 
+                role: 'bot', 
+                content: `Sorry, there was an error: ${err.message}` 
+            };
+            setSelected(prev => ({
+                ...prev,
+                messages: prev?.messages ? [...prev.messages, errorMessage] : [errorMessage]
+            }));
+        } finally {
+            setIsBotTyping(false);
         }
     };
-    // Initial load of conversations and user plan
+
     useEffect(() => {
         fetchConversations();
         const userPlan = localStorage.getItem('userPlan') || 'Free';
         setCurrentPlan(userPlan);
     }, []);
 
-    // Handle URL params and selected conversation
     useEffect(() => {
         const id = searchParams.get('id');
         if (id && conversations.length > 0) {
             const selectedConversation = conversations.find((item) => item.id === id);
-            setSelected(selectedConversation);
+            setSelected(selectedConversation || null);
         }
     }, [searchParams, conversations]);
 
-    // Rest of the component remains the same...
-    // (Keep all the existing code for rendering, SimpleBar, etc.)
-    // Scroll to bottom of chat
     useEffect(() => {
         if (chatWindow.current) {
             const scrollElement = chatWindow.current.contentWrapperEl;
@@ -225,7 +189,6 @@ function Chatbot() {
                 <div className="tyn-aside-head">
                     <div className="tyn-aside-head-text">
                         <h3 className="tyn-aside-title tyn-title">Chat Archive</h3>
-                        {/* <span className="tyn-subtext">{conversations.length} Conversations</span> */}
                     </div>
                     <div className="tyn-aside-head-tools">
                         <ul className="tyn-list-inline gap gap-3">
@@ -234,10 +197,7 @@ function Chatbot() {
                                     variant="light"
                                     size="md"
                                     className="btn-icon btn-pill"
-                                    onClick={() => {
-                                        // Handle creating new conversation
-                                        // You would implement this based on your requirements
-                                    }}
+                                    onClick={createNewConversation}
                                 >
                                     <PlusLg />
                                 </Button>
@@ -248,9 +208,9 @@ function Chatbot() {
                 <SimpleBar className="tyn-aside-body">
                     <ul className="tyn-aside-list">
                         {Array.isArray(conversations) && conversations.length > 0 ? (
-                            conversations.map((item, index) => (
+                            conversations.map((item) => (
                                 <li
-                                    key={index}
+                                    key={item.id}
                                     className={classNames({
                                         'tyn-aside-item': true,
                                         active: item.id === selected?.id,
@@ -304,10 +264,7 @@ function Chatbot() {
                                     variant="light"
                                     size="lg"
                                     className="w-100 flex-column py-2 pt-3"
-                                    onClick={() => {
-                                        // Handle clearing archive
-                                        // You would implement this based on your requirements
-                                    }}
+                                    onClick={() => {}}
                                 >
                                     <Trash />
                                     <span className="small text-nowrap mt-n1">Clear Archive</span>
@@ -322,7 +279,6 @@ function Chatbot() {
                     'tyn-main tyn-main-boxed tyn-main-boxed-lg': true,
                     'main-shown': showMain,
                 })}
-                id="tynMain"
             >
                 <ul className="tyn-list-inline d-md-none translate-middle-x position-absolute start-50 z-1">
                     <li>
@@ -335,62 +291,44 @@ function Chatbot() {
                         </Button>
                     </li>
                 </ul>
-                <SimpleBar ref={chatWindow} className="tyn-chat-body m-4 rounded-3" id="tynBotBody">
-                    <div className="tyn-qa" id="tynBotReply">
-                        {selected?.chats?.map((item, index) => (
-                            <div
-                                key={index}
-                                className={classNames({
-                                    'tyn-qa-item': true,
-                                    'rounded-bottom-3': selected.chats.length === index + 1,
-                                })}
-                            >
+                <SimpleBar ref={chatWindow} className="tyn-chat-body m-4 rounded-3">
+                    <div className="tyn-qa">
+                        {(!selected?.messages || selected.messages.length === 0) && (
+                            <div className="tyn-qa-item">
                                 <div className="tyn-qa-avatar">
                                     <Media size="md">
-                                        {item.who === 'user' && <img src="images/avatar/1.jpg" alt="" />}
-                                        {item.who === 'bot' && <img src="images/avatar/bot-1.jpg" alt="" />}
+                                        <img src="images/avatar/bot-1.jpg" alt="" />
                                     </Media>
                                 </div>
                                 <div className="tyn-qa-message tyn-text-block">
-                                    <Markdown
-                                        children={item.content}
-                                        components={{
-                                            code(props) {
-                                                const { children, className, node, inline, ...rest } = props;
-                                                const match = /language-(\w+)/.exec(className || '');
-                                                const [copied, setCopied] = useState(false);
-                                                return !inline && match ? (
-                                                    <div className="tyn-code-block">
-                                                        <h6 className="tyn-code-block-title tyn-overline">{match[1]}</h6>
-                                                        <CopyToClipboard
-                                                            className="tyn-copy"
-                                                            text={children}
-                                                            onCopy={() => {
-                                                                setCopied(true);
-                                                                setTimeout(() => setCopied(false), 1000);
-                                                            }}
-                                                        >
-                                                            <button>{copied ? 'Copied' : 'Copy'}</button>
-                                                        </CopyToClipboard>
-                                                        <SyntaxHighlighter
-                                                            {...rest}
-                                                            children={String(children).replace(/\n$/, '')}
-                                                            language={match[1]}
-                                                            useInlineStyles={false}
-                                                            className={className}
-                                                        />
-                                                    </div>
-                                                ) : (
-                                                    <code {...rest} className={className}>
-                                                        {children}
-                                                    </code>
-                                                );
-                                            },
-                                        }}
-                                    />
+                                    <Markdown>Start the conversation</Markdown>
+                                </div>
+                            </div>
+                        )}
+                        {selected?.messages?.map((item, index) => (
+                            <div key={index} className="tyn-qa-item">
+                                <div className="tyn-qa-avatar">
+                                    <Media size="md">
+                                        <img src={item.role === 'user' ? "images/avatar/1.jpg" : "images/avatar/bot-1.jpg"} alt="" />
+                                    </Media>
+                                </div>
+                                <div className="tyn-qa-message tyn-text-block">
+                                    <Markdown>{item.content}</Markdown>
                                 </div>
                             </div>
                         ))}
+                        {isBotTyping && (
+                            <div className="tyn-qa-item">
+                                <div className="tyn-qa-avatar">
+                                    <Media size="md">
+                                        <img src="images/avatar/bot-1.jpg" alt="" />
+                                    </Media>
+                                </div>
+                                <div className="tyn-qa-message tyn-text-block">
+                                    <span>Typing...</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </SimpleBar>
                 <div className="tyn-chat-form border-0 ps-3 pe-4 py-3 bg-white mb-4 mx-4 rounded-3">
@@ -413,7 +351,7 @@ function Chatbot() {
                                     variant="white"
                                     size="md"
                                     className="btn-icon btn-pill"
-                                    onClick={handleSendMessage}
+                                    onClick={() => handleSendMessage()}
                                 >
                                     <SendFill />
                                 </Button>

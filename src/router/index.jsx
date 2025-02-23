@@ -1,10 +1,12 @@
-import React from 'react'
+import React from 'react';
 import {
   createBrowserRouter,
   RouterProvider,
+  Navigate,
 } from "react-router-dom";
-//Pages
+import { AuthContext } from '../store/AuthContext'; // Import AuthContext
 
+// Pages
 import Home from '../pages/Home';
 import Contacts from '../pages/Contacts';
 import Stories from '../pages/Stories';
@@ -14,16 +16,25 @@ import Chatbot2 from '../pages/Chatbot2';
 import Pricing from '../pages/Pricing';
 import Faq from '../pages/Faq';
 import NotFound from '../pages/NotFound';
-
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Forgot from '../pages/Forgot';
-
 import UiElements from '../pages/UiElements';
 import UiChatReplies from '../pages/UiChatReplies';
 import UiUsecaseModals from '../pages/UiUsecaseModals';
-
 import Landing from '../pages/Landing';
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { sessionId } = React.useContext(AuthContext);
+
+  // If no sessionId, redirect to login
+  if (!sessionId) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
 
 const router = createBrowserRouter([
   {
@@ -40,7 +51,11 @@ const router = createBrowserRouter([
   },
   {
     path: "/chatbot",
-    element: <Chatbot />,
+    element: (
+      <ProtectedRoute>
+        <Chatbot />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/profile",
@@ -75,7 +90,7 @@ const router = createBrowserRouter([
 function Router() {
   return (
     <RouterProvider router={router} />
-  )
+  );
 }
 
 export default Router;

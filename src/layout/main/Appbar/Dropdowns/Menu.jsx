@@ -8,18 +8,7 @@ import {
 
 const data = [
     { heading: "Quick Links" },
-    { text: "Chats", icon: <ChatTextFill />, link: "/"},
-    { text: "Contacts", icon: <PersonLinesFill />, link: "/contacts"},
-    { text: "Stories", icon: <Subtract />, link: "/stories"},
-    { text: "ChatBot", icon: <Robot />, link: "/chatbot"},
-    { text: "ChatBot S2", icon: <PersonBoundingBox />, link: "/chatbot-s2"},
-    { text: "ChatBot Welcome", icon: <DoorOpenFill />, link: "/chatbot-welcome"},
-    { text: "Pricing", icon: <PersonFillUp />, link: "/pricing"},
-    { text: "Faq", icon: <QuestionOctagonFill />, link: "/faq"},
-    { heading: "UI Components" },
-    { text: "Chat Replaies", icon: <ChatRightTextFill />, link: "/ui-chat-replies"},
-    { text: "UseCase Modals", icon: <Front />, link: "/ui-usecase-modals"},
-    { text: "Misc Elements", icon: <SafeFill />, link: "/ui-elements"}
+    { text: "ChatBot", icon: <Robot />, link: "/chatbot"}
 ]
 
 function Menu() {

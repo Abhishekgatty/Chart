@@ -2,43 +2,40 @@ import axios from 'axios';
 
 const BASE_URL = 'http://204.12.227.152:9090/chatbotservices';
 
-// Fetch User Details
 export const fetchUserData = async (sessionId) => {
     try {
-        console.log("Fetching user data with sessionId:", sessionId); // Debug log
+        console.log("Fetching user data with sessionId:", sessionId);
         const response = await axios.get(`${BASE_URL}/api/users/user`, {
             headers: {
-                'sessionId': sessionId, // Include sessionId in headers
+                'sessionId': sessionId,
                 'Content-Type': 'application/json',
             },
         });
-        console.log("User data response:", response.data); // Debug log
+        console.log("User data response:", response.data);
         return response.data;
     } catch (error) {
-        console.error("Error fetching user data:", error.message); // Debug log
+        console.error("Error fetching user data:", error.message);
         throw new Error(error.response?.data?.message || 'Failed to load user data.');
     }
 };
 
-// Update User Details
 export const updateUserData = async (sessionId, userData) => {
     try {
-        console.log("Updating user data with sessionId:", sessionId); // Debug log
+        console.log("Updating user data with sessionId:", sessionId);
         const response = await axios.post(`${BASE_URL}/api/users/user`, userData, {
             headers: {
-                'sessionId': sessionId, // Include sessionId in headers
+                'sessionId': sessionId,
                 'Content-Type': 'application/json',
             },
         });
-        console.log("Update user data response:", response.data); // Debug log
+        console.log("Update user data response:", response.data);
         return response.data;
     } catch (error) {
-        console.error("Error updating user data:", error.message); // Debug log
+        console.error("Error updating user data:", error.message);
         throw new Error(error.response?.data?.message || 'Failed to update user data.');
     }
 };
 
-// Register User
 export const registerUser = async (userData) => {
     try {
         const response = await axios.post(`${BASE_URL}/api/users/register`, userData, {
@@ -52,7 +49,6 @@ export const registerUser = async (userData) => {
     }
 };
 
-// Forgot Password
 export const forgotPassword = async (email) => {
     try {
         const response = await axios.get(`${BASE_URL}/api/users/forgotPassword`, {
@@ -61,5 +57,22 @@ export const forgotPassword = async (email) => {
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Password reset request failed.');
+    }
+};
+
+export const changePassword = async (sessionId, passwordData) => {
+    try {
+        console.log("Changing password with sessionId:", sessionId);
+        const response = await axios.post(`${BASE_URL}/api/users/change-password`, passwordData, {
+            headers: {
+                'sessionId': sessionId,
+                'Content-Type': 'application/json',
+            },
+        });
+        console.log("Change password response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error changing password:", error.message);
+        throw new Error(error.response?.data?.message || 'Failed to change password.');
     }
 };
