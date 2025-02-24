@@ -3,30 +3,34 @@ import React, { createContext, useState, useEffect } from 'react';
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [sessionId, setSessionId] = useState(null);
+  const [sessionId, setSessionId] = useState(localStorage.getItem('sessionId')); // Synchronous initial value
+  const [loading, setLoading] = useState(true); // Loading state
 
-  // Store session ID in local storage
   const storeSessionId = (id) => {
     localStorage.setItem('sessionId', id);
     setSessionId(id);
   };
 
-  // Retrieve session ID from local storage
+  const clearSessionId = () => {
+    localStorage.removeItem('sessionId');
+    setSessionId(null);
+  };
+
   const getSessionId = () => {
     const id = localStorage.getItem('sessionId');
     if (id) setSessionId(id);
     return id;
   };
 
-  // Clear session ID on logout
-  const clearSessionId = () => {
-    localStorage.removeItem('sessionId');
-    setSessionId(null);
-  };
-
-  // Initialize session ID on app load
   useEffect(() => {
-    getSessionId();
+    const initializeSession = async () => {
+      const storedSessionId = localStorage.getItem('sessionId');
+      if (storedSessionId && !sessionId) {
+        setSessionId(storedSessionId);
+      }
+      setLoading(false); // Mark loading complete after initialization
+    };
+    initializeSession();
   }, []);
 
   return (
@@ -36,6 +40,7 @@ export const AuthProvider = ({ children }) => {
         login: storeSessionId,
         logout: clearSessionId,
         getSessionId,
+        loading, // Expose loading state
       }}
     >
       {children}

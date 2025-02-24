@@ -4,31 +4,30 @@ import {
   RouterProvider,
   Navigate,
 } from "react-router-dom";
-import { AuthContext } from '../store/AuthContext'; // Import AuthContext
+import { AuthContext } from '../store/AuthContext';
 
 // Pages
 import Home from '../pages/Home';
 import Contacts from '../pages/Contacts';
-import Stories from '../pages/Stories';
 import Profile from '../pages/Profile';
 import Chatbot from '../pages/Chatbot';
-import Chatbot2 from '../pages/Chatbot2';
 import Pricing from '../pages/Pricing';
 import Faq from '../pages/Faq';
 import NotFound from '../pages/NotFound';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Forgot from '../pages/Forgot';
-import UiElements from '../pages/UiElements';
-import UiChatReplies from '../pages/UiChatReplies';
-import UiUsecaseModals from '../pages/UiUsecaseModals';
-import Landing from '../pages/Landing';
 
-// Protected Route Component
+// Protected Route Component with loading state
 const ProtectedRoute = ({ children }) => {
-  const { sessionId } = React.useContext(AuthContext);
+  const { sessionId, loading } = React.useContext(AuthContext);
 
-  // If no sessionId, redirect to login
+  // Wait for AuthContext to initialize
+  if (loading) {
+    return <div>Loading...</div>; // Or a spinner/loading component
+  }
+
+  // Redirect to login if no sessionId after loading
   if (!sessionId) {
     return <Navigate to="/login" replace />;
   }
