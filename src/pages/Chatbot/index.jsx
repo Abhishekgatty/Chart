@@ -130,7 +130,7 @@ function Chatbot() {
         params: {
           user_id: userData.id,
           session_id: sessionId,
-          user_department: 'Nursing',
+          user_department: userData.course,
           user_year: userData.year,
           user_semester: userData.semester,
           message: messageToSend,

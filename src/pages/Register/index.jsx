@@ -338,11 +338,8 @@ function Register() {
                                                         isInvalid={!!errors.semester}
                                                     >
                                                         <option value="">Select a semester</option>
-                                                        {[1, 2, 3, 4, 5, 6].map((semester) => (
-                                                            <option key={semester} value={semester}>
-                                                                {semester}
-                                                            </option>
-                                                        ))}
+                                                        <option value="1">1</option>
+                                                        <option value="2">2</option>
                                                     </Form.Select>
                                                     <Form.Control.Feedback type="invalid">
                                                         {errors.semester}
