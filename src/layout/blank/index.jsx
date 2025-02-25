@@ -6,7 +6,6 @@ import { Helmet, HelmetProvider } from "react-helmet-async";
 
 function Default({title,content, ...props}) {
   const contentClass = classNames({
-    title: "Optimus",
     [`${content}`]: content,
   });
 

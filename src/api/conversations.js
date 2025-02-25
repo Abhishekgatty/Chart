@@ -1,34 +1,38 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://204.12.227.152:9092/chatbotservices';
+const API_BASE_URL = 'http://204.12.227.152:9092/chatbotservices/api';
 
-// Save Conversation
-export const saveConversation = async (sessionId, conversationData) => {
-    try {
-        // Transform the conversation data to match the expected format
-        const payload = {
-            id: Number(conversationData.id), // Convert ID to a number
-            messages: conversationData.messages || [], // Ensure messages exist
-            timestamp: new Date().toISOString() // Add current timestamp
-        };
-
-        const response = await axios.post(`${BASE_URL}/api/conversations/saveConversation`, payload, {
-            headers: { sessionId }
-        });
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to save conversation.');
-    }
+// Fetch archived session details
+export const getArchivedSessions = async (sessionId) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/sessions/userconversationdetails`, {
+      headers: {
+        'accept': '*/*',
+        'sessionId': sessionId,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error in getArchivedSessions:', error);
+    throw error.response?.data || error.message;
+  }
 };
 
-// Get Conversations
-export const getConversations = async (sessionId) => {
-    try {
-        const response = await axios.get(`${BASE_URL}/api/conversations/getConversations`, {
-            headers: { sessionId }
-        });
-        return response.data;
-    } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to fetch conversations.');
-    }
+// Fetch conversations for a specific session
+export const getConversations = async (sessionId, pastSessionId) => {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/conversations/getConversations`, {
+      headers: {
+        'accept': '*/*',
+        'sessionId': sessionId,
+      },
+      params: {
+        pastSessionId,
+      },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error in getConversations:', error);
+    throw error.response?.data || error.message;
+  }
 };
