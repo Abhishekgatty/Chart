@@ -90,7 +90,7 @@ switch (fruit) {
 ~~~
 1.4 Example: Changing CSS with JavaScript
 
-One useful application of JavaScript is to dynamically modify the CSS of a webpage. Here's an example of how to use JavaScript to change the color of a paragraph element when a button is clicked:
+One useful Applicationof JavaScript is to dynamically modify the CSS of a webpage. Here's an example of how to use JavaScript to change the color of a paragraph element when a button is clicked:
 ~~~html
 <!DOCTYPE html>
 <html>

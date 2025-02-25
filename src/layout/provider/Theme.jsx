@@ -28,12 +28,12 @@ function ThemeProvider( {children}) {
 
   let date = todaysDate.getDate();
   function setLocalStorage() {
-    localStorage.setItem("connectMeThemeReactV100", JSON.stringify({ style: layout, date: date }));
+    localStorage.setItem("OptimusThemeReactV100", JSON.stringify({ style: layout, date: date }));
   };
 
   useLayoutEffect(() => {
-    if(localStorage.getItem("connectMeThemeReactV100")){
-      let retrivedObject = JSON.parse(localStorage.getItem("connectMeThemeReactV100"));
+    if(localStorage.getItem("OptimusThemeReactV100")){
+      let retrivedObject = JSON.parse(localStorage.getItem("OptimusThemeReactV100"));
       if (retrivedObject.date !== date) {
         setLayout(layoutConfig);
       } else {

@@ -92,6 +92,7 @@ const ProfileEdit = () => {
                 type: 'success',
                 message: 'Profile updated successfully!'
             });
+            
         } catch (error) {
             console.error('Submit error:', error);
             const errorMessage = error.message || 'Failed to update profile.';
@@ -102,6 +103,7 @@ const ProfileEdit = () => {
         } finally {
             setIsSubmitting(false);
         }
+        window.scrollTo(0, 0);
     };
 
     if (loading) {

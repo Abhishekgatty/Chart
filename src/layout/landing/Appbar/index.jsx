@@ -25,7 +25,7 @@ function Appbar({className}) {
                             <a className="fw-semibold link-secondary" href="#demo-pages">Demo Pages</a>
                         </li>
                     </ul>
-                    <a href="https://themeforest.net/item/connectme-chat-application-react-template/51520402" target="_blank" className="btn btn-primary"><span className="d-sm-none">Purchase</span><span className="d-none d-sm-inline">Purchase Now</span></a>
+                    <a href="https://themeforest.net/item/Optimus-chat-application-react-template/51520402" target="_blank" className="btn btn-primary"><span className="d-sm-none">Purchase</span><span className="d-none d-sm-inline">Purchase Now</span></a>
                 </div>
             </div>
         </div>

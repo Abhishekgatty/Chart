@@ -6,13 +6,14 @@ import { Helmet, HelmetProvider } from "react-helmet-async";
 
 function Default({title,content, ...props}) {
   const contentClass = classNames({
+    title: "Optimus",
     [`${content}`]: content,
   });
 
   return (
     <HelmetProvider>
       <Helmet>
-          <title>{`${title ? title + " | " : '' }ConnectMe | Chat Application React Template`}</title>
+          <title>{`${title ? title + " | " : '' }Optimus | Chat Application`}</title>
       </Helmet>
       <AppRoot>
         <AppContent className={contentClass}>
