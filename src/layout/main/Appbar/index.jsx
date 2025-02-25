@@ -1,7 +1,7 @@
 import React from 'react';
 import classNames from 'classnames';
 import { NavLink } from 'react-router-dom';
-import { ChatTextFill, PersonLinesFill, PersonBoundingBox, Robot, Subtract } from 'react-bootstrap-icons';
+import { ChatTextFill, PersonLinesFill, PersonBoundingBox, Wechat, Subtract, Mic, } from 'react-bootstrap-icons';
 import { Badge } from 'react-bootstrap';
 import { LogoLink } from '../../../components';
 
@@ -23,7 +23,10 @@ function Appbar({className}) {
             <div className="tyn-appbar-content">
                 <AppbarNav align="start">
                     <AppbarItem show='sm'>
-                        <AppbarLink icon={<Robot />} text="ChatBot" link="/chatbot" />
+                        <AppbarLink icon={<Wechat />} text="ChatBot" link="/chatbot" />
+                    </AppbarItem>
+                    <AppbarItem show='sm'>
+                        <AppbarLink icon={<Mic />} text="VoiceChat" link="/voicechat" />
                     </AppbarItem>
                 </AppbarNav>
                 <AppbarNav align="end">
@@ -72,7 +75,7 @@ function AppbarLink({className,icon,text,link,badge}){
         <NavLink className={compClass} to={link}>
             {icon}
             {badge && <Badge pill bg="primary" className="position-absolute top-0 end-0 mt-n1 me-n1">{badge}</Badge>}
-            {text && <span className="d-none">{text}</span>}
+            {text && <span className="">{text}</span>}
         </NavLink>
     )
 }

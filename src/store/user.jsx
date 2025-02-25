@@ -11,11 +11,13 @@ const defaultUserData = {
     course: "Not provided",
     year: 0,
     college: "Not provided",
-    subscriptions: [],
-    conversations: []
+    semester: 0, 
+    subscriptionName: "Free", 
+    subscriptions: [], 
+    conversations: [] 
 };
 
-const BASE_URL = 'http://204.12.227.152:9090/chatbotservices';
+const BASE_URL = 'http://204.12.227.152:9092/chatbotservices';
 
 export const fetchUserData = async (sessionId) => {
     try {
@@ -31,22 +33,21 @@ export const fetchUserData = async (sessionId) => {
     }
 };
 
-export const useUserData = () => {
+export const useUserData = (sessionId) => { // Changed to accept sessionId as parameter
     const [userData, setUserData] = useState(defaultUserData);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchUser = async () => {
+            setLoading(true);
             try {
-                const sessionId = localStorage.getItem('sessionId');
-                console.log('useUserData - sessionId:', sessionId); // Debug log
                 if (!sessionId) {
                     throw new Error('Session ID not found.');
                 }
 
                 const data = await fetchUserData(sessionId);
-                console.log('useUserData - fetched data:', data); // Debug log
+                console.log('useUserData - fetched data:', data);
                 setUserData(data);
             } catch (err) {
                 setError(err.message);
@@ -57,7 +58,7 @@ export const useUserData = () => {
         };
 
         fetchUser();
-    }, [localStorage.getItem('sessionId')]); 
+    }, [sessionId]); // Dependency on sessionId parameter
 
     return { userData, loading, error };
 };

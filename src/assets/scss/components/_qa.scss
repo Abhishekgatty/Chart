@@ -67,7 +67,9 @@ $qa-base: #{$app-prefix}qa;
             padding: 1.25rem;
         }
         .#{$qa-base}-bubbly .#{$qa-base}-item:nth-child(odd) & {
-            background: var(--qa-bg-human);
+            background: var(--qa-bg-human); & -p {
+                text-align: right;
+            }
         }
         .#{$qa-base}-bubbly .#{$qa-base}-item:nth-child(even) & {
             background: var(--qa-bg);

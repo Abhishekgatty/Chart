@@ -6,10 +6,12 @@ function Footer({className}) {
         "tyn-footer": true,
         [className]: className,
     });
+    const year = new Date().getFullYear();
+    
   return (
     <div className={compClass}>
         <div className="bg-white text-center py-3">
-            <p className="mb-0 small">2024 &copy; TheFutureMed. Crafted By <a href="https://pmhstechsolutions.com/" target="_blank"  className="fw-semibold">PMHS Techsolutions</a> </p>
+            <p className="mb-0 small">{year} &copy; TheFutureMed. Crafted By <a href="https://pmhstechsolutions.com/" target="_blank"  className="fw-semibold">PMHS TechSolutions</a> </p>
         </div>
     </div>
   )

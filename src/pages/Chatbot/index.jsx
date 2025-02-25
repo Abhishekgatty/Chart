@@ -7,7 +7,8 @@ import { Media } from '../../components';
 import { Link } from 'react-router-dom';
 import Markdown from 'react-markdown';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { getConversations } from '../../api/conversations';
+import { getConversations, saveConversation } from '../../api/conversations';
+import { useUserData } from '../../store/user';
 import classNames from 'classnames';
 
 const CHATBOT_BASE_URL = 'http://204.12.227.152:8000';
@@ -22,19 +23,17 @@ function Chatbot() {
     const [error, setError] = useState(null);
     const [inputMessage, setInputMessage] = useState('');
     const [isBotTyping, setIsBotTyping] = useState(false);
+    const [suggestionTopic, setSuggestionTopic] = useState(''); // State for suggestion_topic
+    const [suggestedQuestions, setSuggestedQuestions] = useState(''); // State for suggested_questions
     const chatWindow = useRef(null);
     const [currentPlan, setCurrentPlan] = useState('Free');
 
-    const userInfo = {
-        user_id: 1,
-        user_department: 'Nursing',
-        user_year: 4,
-        user_semester: 2
-    };
+    const sessionId = localStorage.getItem('sessionId');
+    const { userData, loading: userLoading, error: userError } = useUserData(sessionId);
 
     const createNewConversation = async () => {
         try {
-            const sessionId = localStorage.getItem('sessionId');
+            if (!sessionId) throw new Error('No session ID found');
             const newConversation = {
                 id: Date.now().toString(),
                 title: `Chat ${conversations.length + 1}`,
@@ -54,9 +53,9 @@ function Chatbot() {
     const fetchConversations = async () => {
         try {
             setLoading(true);
-            const sessionId = localStorage.getItem('sessionId');
+            if (!sessionId) throw new Error('No session ID found');
             const response = await getConversations(sessionId);
-            
+
             if (Array.isArray(response)) {
                 setConversations(response.slice(0, 5));
                 if (response.length === 0) {
@@ -96,7 +95,7 @@ function Chatbot() {
             messages: updatedMessages
         };
         setSelected(tempConversation);
-        
+
         if (!messageInput) {
             setInputMessage('');
         }
@@ -104,12 +103,10 @@ function Chatbot() {
         setIsBotTyping(true);
 
         try {
-            const sessionId = localStorage.getItem('sessionId');
-            if (!sessionId) {
-                throw new Error('No session ID found');
-            }
+            if (!sessionId) throw new Error('No session ID found');
+            if (!userData || !userData.id) throw new Error('User ID not available');
 
-            const url = `${CHATBOT_BASE_URL}/chatbot/send_message?user_id=${userInfo.user_id}&session_id=${encodeURIComponent(sessionId)}&user_department=${encodeURIComponent(userInfo.user_department)}&user_year=${encodeURIComponent(userInfo.user_year)}&user_semester=${userInfo.user_semester}&message=${encodeURIComponent(messageToSend)}`;
+            const url = `${CHATBOT_BASE_URL}/chatbot/send_message?user_id=${userData.id}&session_id=${encodeURIComponent(sessionId)}&user_department=${encodeURIComponent('Nursing')}&user_year=4&user_semester=2&message=${encodeURIComponent(messageToSend)}`;
 
             console.log('Sending request to:', url);
 
@@ -130,20 +127,37 @@ function Chatbot() {
             const data = await response.json();
             console.log('Received response:', data);
 
-            const botMessage = { role: 'bot', content: data.response || "Error getting response" };
+            const botMessage = { role: 'bot', content: data.actual_response || "Error getting response" };
             const updatedConversation = {
                 ...tempConversation,
                 messages: [...tempConversation.messages, botMessage],
                 timestamp: new Date().toISOString()
             };
-            
+
             setSelected(updatedConversation);
+            setSuggestionTopic(data.suggestion_topic || ''); // Store suggestion_topic
+            setSuggestedQuestions(data.suggested_questions || ''); // Store suggested_questions
+
+            try {
+                const savedConversation = await saveConversation(sessionId, updatedConversation);
+                console.log('Conversation saved:', savedConversation);
+                if (savedConversation.id !== updatedConversation.id) {
+                    setSelected({ ...updatedConversation, id: savedConversation.id });
+                    navigate(`/chatbot?id=${savedConversation.id}`);
+                }
+                setConversations(prev =>
+                    prev.map(conv => conv.id === updatedConversation.id ? savedConversation : conv)
+                );
+            } catch (saveErr) {
+                console.error('Error saving conversation:', saveErr);
+                setError('Failed to save conversation');
+            }
         } catch (err) {
             console.error("Error sending message:", err);
             setError(err.message);
-            const errorMessage = { 
-                role: 'bot', 
-                content: `Sorry, there was an error: ${err.message}` 
+            const errorMessage = {
+                role: 'bot',
+                content: `Sorry, there was an error: ${err.message}`
             };
             setSelected(prev => ({
                 ...prev,
@@ -152,6 +166,14 @@ function Chatbot() {
         } finally {
             setIsBotTyping(false);
         }
+    };
+
+    const handleSuggestionResponse = (response) => {
+        if (response === 'yes' && suggestedQuestions) {
+            handleSendMessage(suggestedQuestions); // Send suggested_questions as a new message
+        }
+        setSuggestionTopic(''); // Clear suggestion after response
+        setSuggestedQuestions('');
     };
 
     useEffect(() => {
@@ -174,6 +196,14 @@ function Chatbot() {
             scrollElement.scrollTop = scrollElement.scrollHeight;
         }
     }, [selected]);
+
+    if (userLoading) {
+        return <div className="text-center p-4">Loading user data...</div>;
+    }
+
+    if (userError || !userData) {
+        return <div className="text-center p-4 text-danger">Error loading user data or not logged in</div>;
+    }
 
     if (loading && conversations.length === 0) {
         return <div className="text-center p-4">Loading conversations...</div>;
@@ -198,6 +228,7 @@ function Chatbot() {
                                     size="md"
                                     className="btn-icon btn-pill"
                                     onClick={createNewConversation}
+                                    disabled
                                 >
                                     <PlusLg />
                                 </Button>
@@ -264,7 +295,8 @@ function Chatbot() {
                                     variant="light"
                                     size="lg"
                                     className="w-100 flex-column py-2 pt-3"
-                                    onClick={() => {}}
+                                    onClick={() => { }}
+                                    disabled
                                 >
                                     <Trash />
                                     <span className="small text-nowrap mt-n1">Clear Archive</span>
@@ -306,26 +338,77 @@ function Chatbot() {
                             </div>
                         )}
                         {selected?.messages?.map((item, index) => (
-                            <div key={index} className="tyn-qa-item">
-                                <div className="tyn-qa-avatar">
-                                    <Media size="md">
-                                        <img src={item.role === 'user' ? "images/avatar/1.jpg" : "images/avatar/bot-1.jpg"} alt="" />
-                                    </Media>
-                                </div>
-                                <div className="tyn-qa-message tyn-text-block">
+                            <div
+                                key={index}
+                                className={classNames('tyn-qa-item', {
+                                    'd-flex flex-row': item.role === 'bot',
+                                    'd-flex flex-col-reverse': item.role === 'user'
+                                })}
+                            >
+                                {item.role === 'bot' && (
+                                    <div className="tyn-qa-avatar me-2">
+                                        <Media size="md">
+                                            <img src="images/avatar/bot-1.jpg" alt="" />
+                                        </Media>
+                                    </div>
+                                )}
+                                <div
+                                    className={classNames('tyn-qa-message tyn-text-block', {
+                                        'text-start': item.role === 'bot',
+                                        'text-end': item.role === 'user'
+                                    })}
+                                >
                                     <Markdown>{item.content}</Markdown>
                                 </div>
+                                {item.role === 'user' && (
+                                    <div className="tyn-qa-avatar ms-2">
+                                        <Media size="md">
+                                            <img src="images/avatar/1.jpg" alt="" />
+                                        </Media>
+                                    </div>
+                                )}
                             </div>
                         ))}
                         {isBotTyping && (
-                            <div className="tyn-qa-item">
-                                <div className="tyn-qa-avatar">
+                            <div className="tyn-qa-item d-flex flex-row">
+                                <div className="tyn-qa-avatar me-2">
                                     <Media size="md">
                                         <img src="images/avatar/bot-1.jpg" alt="" />
                                     </Media>
                                 </div>
-                                <div className="tyn-qa-message tyn-text-block">
+                                <div className="tyn-qa-message tyn-text-block text-start">
                                     <span>Typing...</span>
+                                </div>
+                            </div>
+                        )}
+                        {(suggestionTopic || suggestedQuestions) && (
+                            <div className="tyn-qa-item d-flex flex-row">
+                                <div className="tyn-qa-avatar me-2">
+                                    <Media size="md">
+                                        <img src="images/avatar/bot-1.jpg" alt="" />
+                                    </Media>
+                                </div>
+                                <div className="tyn-qa-message tyn-text-block text-start">
+                                    {suggestionTopic && <p><strong>Suggestion Topic:</strong> <Markdown>{suggestionTopic}</Markdown></p>}
+                                    {suggestedQuestions && <p><strong>Suggested Question:</strong> <Markdown>{suggestedQuestions}</Markdown></p>}
+                                    <div className="mt-2">
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            className="me-2"
+                                            onClick={() => handleSuggestionResponse('yes')}
+                                        >
+                                            Yes
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            onClick={() => handleSuggestionResponse('no')}
+                                        >
+                                            No
+                                        </Button>
+                                    </div>
+                                    <p style={{fontSize:"10px", color:"green", marginTop:"10px"}}>Note: Click yes to procced with suggested question</p>
                                 </div>
                             </div>
                         )}
@@ -338,7 +421,7 @@ function Chatbot() {
                             className="tyn-chat-form-input"
                             value={inputMessage}
                             onChange={(e) => setInputMessage(e.target.value)}
-                            onKeyPress={(e) => {
+                            onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     handleSendMessage();
                                 }

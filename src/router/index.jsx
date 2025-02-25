@@ -11,13 +11,14 @@ import Home from '../pages/Home';
 import Contacts from '../pages/Contacts';
 import Profile from '../pages/Profile';
 import Chatbot from '../pages/Chatbot';
+import Chatbot2 from '../pages/Chatbot2';
 import Pricing from '../pages/Pricing';
 import Faq from '../pages/Faq';
 import NotFound from '../pages/NotFound';
 import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Forgot from '../pages/Forgot';
-
+import Voicechat from '../pages/Voicechat';
 // Protected Route Component with loading state
 const ProtectedRoute = ({ children }) => {
   const { sessionId, loading } = React.useContext(AuthContext);
@@ -53,6 +54,14 @@ const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Chatbot />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/voicechat",
+    element: (
+      <ProtectedRoute>
+        <Voicechat />
       </ProtectedRoute>
     ),
   },

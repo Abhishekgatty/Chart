@@ -74,7 +74,7 @@ const Login = () => {
         type: 'success',
         message: 'Login successful',
       });
-      setTimeout(() => navigate('/profile'), 2000);
+      setTimeout(() => navigate('/chatbot'), 2000);
     } catch (error) {
       console.error('Login error:', error);
       const errorMessage =

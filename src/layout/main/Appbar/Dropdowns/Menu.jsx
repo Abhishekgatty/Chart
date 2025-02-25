@@ -8,7 +8,8 @@ import {
 
 const data = [
     { heading: "Quick Links" },
-    { text: "ChatBot", icon: <Robot />, link: "/chatbot"}
+    { text: "ChatBot", icon: <Robot />, link: "/chatbot"},
+    { text: "VoiceChat", icon: <Robot />, link: "/voicechat"},
 ]
 
 function Menu() {

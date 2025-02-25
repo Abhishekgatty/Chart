@@ -1,25 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { Facebook, Twitter, Instagram, Tiktok } from 'react-bootstrap-icons';
-import { 
-    Envelope, 
-    Building, 
-    Globe as World, 
-    Book, 
-    Calendar, 
-    Mortarboard as University 
+import {
+    Envelope,
+    Building,
+    Globe as World,
+    Book,
+    Calendar,
+    Mortarboard as University
 } from 'react-bootstrap-icons';
 import { Button, Col, Row } from 'react-bootstrap';
 import { useUserData } from '../../store/user';
 
 const ProfileIntro = () => {
-    const { userData, loading, error } = useUserData();    
-        if (loading) {
-            return <p>Loading...</p>;
-        }
-    
-        if (error) {
-            return <p>Error: {error}</p>;
-        }
+    const sessionId = localStorage.getItem('sessionId'); // Fetch sessionId from localStorage
+    const { userData, loading, error } = useUserData(sessionId); // Pass sessionId to useUserData
+    if (loading) {
+        return <p>Loading...</p>;
+    }
+
+    if (error) {
+        return <p>Error: {error}</p>;
+    }
 
     return (
         <Row className="gy-4">
@@ -81,7 +82,7 @@ const ProfileIntro = () => {
                             <div className="mb-2">
                                 <Book />
                             </div>
-                            <span className="tyn-subtext">Course</span>
+                            <span className="tyn-subtext">Department</span>
                             <h5>{userData.course || 'Not provided'}</h5>
                         </div>
                     </li>
@@ -94,6 +95,15 @@ const ProfileIntro = () => {
                             </div>
                             <span className="tyn-subtext">Year</span>
                             <h5>{userData.year || 'Not provided'}</h5>
+                        </div>
+                    </li>
+                    <li>
+                        <div className="vstack">
+                            <div className="mb-2">
+                                <Calendar />
+                            </div>
+                            <span className="tyn-subtext">Semerster</span>
+                            <h5>{userData.semester || 'Not provided'}</h5>
                         </div>
                     </li>
 

@@ -3,7 +3,9 @@ import { Media } from '../../components';
 import { useUserData } from '../../store/user';
 
 const ProfileHead = () => {
-    const { userData, loading, error } = useUserData();    
+    const sessionId = localStorage.getItem('sessionId'); // Fetch sessionId from localStorage
+    const { userData, loading, error } = useUserData(sessionId); // Pass sessionId to useUserData
+   
     if (loading) {
         return <p>Loading...</p>;
     }
@@ -25,7 +27,7 @@ const ProfileHead = () => {
                 <Media.Group className="align-items-start">
                     {/* Profile Avatar */}
                     <Media size="4xl" bordered className="tyn-profile-avatar">
-                        <img src={userData.avatar} alt="" />
+                        <img src="images/avatar/19.jpg" alt="" />
                     </Media>
 
                     {/* Profile Name and Username */}

@@ -9,7 +9,7 @@ const ProfileEdit = () => {
     const sessionId = localStorage.getItem('sessionId');
     const { userData, loading, error } = useUserData(sessionId);
     const [formData, setFormData] = useState({
-        id: 0, // Changed to id to match API response
+        id: 0,
         userName: '',
         name: '',
         email: '',
@@ -17,7 +17,9 @@ const ProfileEdit = () => {
         city: '',
         course: '',
         year: '',
-        college: ''
+        college: '',
+        semester: '',
+        subscriptionName: 'Free'
     });
     const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,7 +33,7 @@ const ProfileEdit = () => {
     useEffect(() => {
         if (userData) {
             setFormData({
-                id: userData.id || 0, // Use id from API response
+                id: userData.id || 0,
                 userName: userData.userName || '',
                 name: userData.name || '',
                 email: userData.email || '',
@@ -39,7 +41,9 @@ const ProfileEdit = () => {
                 city: userData.city || '',
                 course: userData.course || '',
                 year: userData.year || '',
-                college: userData.college || ''
+                college: userData.college || '',
+                semester: userData.semester || '',
+                subscriptionName: userData.subscriptionName || 'Free'
             });
         }
     }, [userData]);
@@ -59,7 +63,6 @@ const ProfileEdit = () => {
                 throw new Error('No session ID found');
             }
 
-            // Validate session and fetch latest user data
             let validatedUserData;
             try {
                 validatedUserData = await fetchUserData(sessionId);
@@ -69,9 +72,8 @@ const ProfileEdit = () => {
                 throw new Error('Invalid session. Please log in again.');
             }
 
-            // Use id from validated data, matching POST response structure
             const submitData = {
-                id: validatedUserData.id, // Use id as per API expectation
+                id: validatedUserData.id,
                 userName: formData.userName,
                 name: formData.name,
                 email: formData.email,
@@ -79,7 +81,9 @@ const ProfileEdit = () => {
                 city: formData.city,
                 course: formData.course,
                 year: parseInt(formData.year) || 0,
-                college: formData.college
+                college: formData.college,
+                semester: parseInt(formData.semester) || 0,
+                subscriptionName: formData.subscriptionName
             };
 
             console.log('Submitting payload:', submitData);
@@ -170,23 +174,31 @@ const ProfileEdit = () => {
                 </Form.Group>
                 <Form.Group className="mb-3">
                     <Form.Label>Course</Form.Label>
-                    <Form.Control
-                        type="text"
+                    <Form.Select
                         name="course"
                         value={formData.course}
                         onChange={handleChange}
                         className="form-control"
-                    />
+                    >
+                        <option value="">Select a course</option>
+                        <option value="Nursing">Nursing</option>
+                    </Form.Select>
                 </Form.Group>
                 <Form.Group className="mb-3">
                     <Form.Label>Year</Form.Label>
-                    <Form.Control
-                        type="number"
+                    <Form.Select
                         name="year"
                         value={formData.year}
                         onChange={handleChange}
                         className="form-control"
-                    />
+                    >
+                        <option value="">Select a year</option>
+                        {[1,2,3,4].map((year) => (
+                            <option key={year} value={year}>
+                                {year}
+                            </option>
+                        ))}
+                    </Form.Select>
                 </Form.Group>
                 <Form.Group className="mb-3">
                     <Form.Label>College</Form.Label>
@@ -197,6 +209,22 @@ const ProfileEdit = () => {
                         onChange={handleChange}
                         className="form-control"
                     />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                    <Form.Label>Semester</Form.Label>
+                    <Form.Select
+                        name="semester"
+                        value={formData.semester}
+                        onChange={handleChange}
+                        className="form-control"
+                    >
+                        <option value="">Select a semester</option>
+                        {[1, 2, 3, 4, 5, 6].map((semester) => (
+                            <option key={semester} value={semester}>
+                                {semester}
+                            </option>
+                        ))}
+                    </Form.Select>
                 </Form.Group>
                 <Button type="submit" className="btn btn-primary" disabled={isSubmitting}>
                     {isSubmitting ? 'Saving...' : 'Save Changes'}

@@ -8,29 +8,25 @@ import { registerUser } from '../../api/user';
 function Register() {
     const navigate = useNavigate();
 
-    // State for form data
     const [formData, setFormData] = useState({
         userName: '',
         email: '',
         password: '',
-        repeatPassword: '', // Added repeat password field
+        repeatPassword: '',
         name: '',
         city: '',
         country: '',
         course: '',
         year: '',
         college: '',
-        subscriptionName: 'Free' // Default subscription plan
+        semester: '',
+        subscriptionName: 'Free'
     });
 
-    // State for validation errors
     const [errors, setErrors] = useState({});
-
-    // State for loading and submission status
     const [isLoading, setIsLoading] = useState(false);
     const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
 
-    // Handle input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
@@ -39,7 +35,6 @@ function Register() {
         }
     };
 
-    // Validate form fields
     const validate = () => {
         const newErrors = {};
         if (!formData.userName) newErrors.userName = 'Username is required';
@@ -55,14 +50,13 @@ function Register() {
         if (!formData.course) newErrors.course = 'Course is required';
         if (!formData.year) newErrors.year = 'Year is required';
         if (!formData.college) newErrors.college = 'College is required';
+        if (!formData.semester) newErrors.semester = 'Semester is required';
         return newErrors;
     };
 
-    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        // Validate form inputs
         const validationErrors = validate();
         if (Object.keys(validationErrors).length > 0) {
             setErrors(validationErrors);
@@ -73,30 +67,27 @@ function Register() {
         setSubmitStatus({ type: '', message: '' });
 
         try {
-            // Prepare data for API (excluding repeatPassword)
             const submitData = {
                 userName: formData.userName,
                 email: formData.email,
-                password: formData.password, // Only send password, not repeatPassword
+                password: formData.password,
                 name: formData.name,
                 city: formData.city,
                 country: formData.country,
                 course: formData.course,
                 year: parseInt(formData.year),
                 college: formData.college,
-                subscriptionName: 'Free'
+                semester: parseInt(formData.semester),
+                subscriptionName: formData.subscriptionName
             };
 
-            // Call the registerUser API function
             await registerUser(submitData);
 
-            // Handle successful registration
             setSubmitStatus({
                 type: 'success',
                 message: 'Registration successful'
             });
 
-            // Reset form fields
             setFormData({
                 userName: '',
                 email: '',
@@ -108,15 +99,14 @@ function Register() {
                 course: '',
                 year: '',
                 college: '',
+                semester: '',
                 subscriptionName: 'Free'
             });
 
             setErrors({});
-            setTimeout(() => navigate('/login'), 2000); // Redirect to login page after 2 seconds
+            setTimeout(() => navigate('/login'), 2000);
         } catch (error) {
             console.error('Registration error:', error);
-
-            // Extract and display error message
             const errorMessage =
                 error.response?.data?.message ||
                 error.response?.data ||
@@ -143,7 +133,6 @@ function Register() {
                             <div className="p-4">
                                 <h3>Create Account</h3>
 
-                                {/* Display submission status */}
                                 {submitStatus.message && (
                                     <Alert variant={submitStatus.type === 'success' ? 'success' : 'danger'}>
                                         {submitStatus.message}
@@ -151,7 +140,6 @@ function Register() {
                                 )}
 
                                 <Form onSubmit={handleSubmit}>
-                                    {/* Username Field */}
                                     <Row className="g-3 gx-4">
                                         <Col sm="6">
                                             <Form.Group className="form-group">
@@ -172,7 +160,6 @@ function Register() {
                                             </Form.Group>
                                         </Col>
                                         <Col sm="6">
-                                            {/* Email Field */}
                                             <Form.Group className="form-group">
                                                 <Form.Label htmlFor="email">Email Address</Form.Label>
                                                 <div className="form-control-wrap">
@@ -191,7 +178,6 @@ function Register() {
                                             </Form.Group>
                                         </Col>
                                         <Col sm="6">
-                                            {/* Password Field */}
                                             <Form.Group className="form-group">
                                                 <Form.Label htmlFor="password">Password</Form.Label>
                                                 <div className="form-control-wrap">
@@ -210,7 +196,6 @@ function Register() {
                                             </Form.Group>
                                         </Col>
                                         <Col sm="6">
-                                            {/* Repeat Password Field */}
                                             <Form.Group className="form-group">
                                                 <Form.Label htmlFor="repeatPassword">Repeat Password</Form.Label>
                                                 <div className="form-control-wrap">
@@ -229,7 +214,6 @@ function Register() {
                                             </Form.Group>
                                         </Col>
                                         <Col sm="6">
-                                            {/* Name Field */}
                                             <Form.Group className="form-group">
                                                 <Form.Label htmlFor="name">Full Name</Form.Label>
                                                 <div className="form-control-wrap">
@@ -248,7 +232,6 @@ function Register() {
                                             </Form.Group>
                                         </Col>
                                         <Col sm="6">
-                                            {/* City Field */}
                                             <Form.Group className="form-group">
                                                 <Form.Label htmlFor="city">City</Form.Label>
                                                 <div className="form-control-wrap">
@@ -267,7 +250,6 @@ function Register() {
                                             </Form.Group>
                                         </Col>
                                         <Col sm="6">
-                                            {/* Country Field */}
                                             <Form.Group className="form-group">
                                                 <Form.Label htmlFor="country">Country</Form.Label>
                                                 <div className="form-control-wrap">
@@ -286,18 +268,18 @@ function Register() {
                                             </Form.Group>
                                         </Col>
                                         <Col sm="6">
-                                            {/* Course Field */}
                                             <Form.Group className="form-group">
-                                                <Form.Label htmlFor="course">Course</Form.Label>
+                                                <Form.Label htmlFor="course">Department</Form.Label>
                                                 <div className="form-control-wrap">
-                                                    <Form.Control
-                                                        type="text"
+                                                    <Form.Select
                                                         name="course"
                                                         value={formData.course}
                                                         onChange={handleChange}
-                                                        placeholder="Enter course"
                                                         isInvalid={!!errors.course}
-                                                    />
+                                                    >
+                                                        <option value="">Select Department</option>
+                                                        <option value="Nursing">Nursing</option>
+                                                    </Form.Select>
                                                     <Form.Control.Feedback type="invalid">
                                                         {errors.course}
                                                     </Form.Control.Feedback>
@@ -305,7 +287,6 @@ function Register() {
                                             </Form.Group>
                                         </Col>
                                         <Col sm="6">
-                                            {/* Year Field */}
                                             <Form.Group className="form-group">
                                                 <Form.Label htmlFor="year">Year</Form.Label>
                                                 <div className="form-control-wrap">
@@ -329,7 +310,6 @@ function Register() {
                                             </Form.Group>
                                         </Col>
                                         <Col sm="6">
-                                            {/* College Field */}
                                             <Form.Group className="form-group">
                                                 <Form.Label htmlFor="college">College</Form.Label>
                                                 <div className="form-control-wrap">
@@ -341,15 +321,36 @@ function Register() {
                                                         placeholder="Enter college"
                                                         isInvalid={!!errors.college}
                                                     />
-
                                                     <Form.Control.Feedback type="invalid">
                                                         {errors.college}
                                                     </Form.Control.Feedback>
                                                 </div>
                                             </Form.Group>
                                         </Col>
+                                        <Col sm="6">
+                                            <Form.Group className="form-group">
+                                                <Form.Label htmlFor="semester">Semester</Form.Label>
+                                                <div className="form-control-wrap">
+                                                    <Form.Select
+                                                        name="semester"
+                                                        value={formData.semester}
+                                                        onChange={handleChange}
+                                                        isInvalid={!!errors.semester}
+                                                    >
+                                                        <option value="">Select a semester</option>
+                                                        {[1, 2, 3, 4, 5, 6].map((semester) => (
+                                                            <option key={semester} value={semester}>
+                                                                {semester}
+                                                            </option>
+                                                        ))}
+                                                    </Form.Select>
+                                                    <Form.Control.Feedback type="invalid">
+                                                        {errors.semester}
+                                                    </Form.Control.Feedback>
+                                                </div>
+                                            </Form.Group>
+                                        </Col>
                                         <Col sm="12">
-                                            {/* Submit Button */}
                                             <Button
                                                 variant="primary"
                                                 type="submit"

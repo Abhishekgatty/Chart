@@ -70,15 +70,17 @@ $appbar-nav-gap-x:                    $body-gap-x;
         }
     }
     &-link{
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
         color: var(--nav-icon-color);
         background: var(--nav-icon-bg);
         border-radius: var(--nav-icon-shape);
-        height: var(--nav-icon-size);
-        width: var(--nav-icon-size);
-        transition: all .3s ease;
+        height: auto;
+        width: auto;
+        transition: all 0.3s ease;
+        gap: 10px;
+        padding: 5px 10px;
         &.active, .active &,&:hover{
             color: var(--nav-icon-active-color);
             background: var(--nav-icon-active-bg);

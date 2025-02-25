@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const BASE_URL = 'http://204.12.227.152:9090/chatbotservices';
+const BASE_URL = 'http://204.12.227.152:9092/chatbotservices';
 
 // Get Subscription Details
 export const getSubscriptionDetails = async (sessionId) => {
