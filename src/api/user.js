@@ -9,6 +9,7 @@ export const fetchUserData = async (sessionId) => {
             headers: {
                 'sessionId': sessionId,
                 'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
             },
         });
         console.log("User data response:", response.data);
@@ -26,6 +27,7 @@ export const updateUserData = async (sessionId, userData) => {
             headers: {
                 'sessionId': sessionId,
                 'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
             },
         });
         console.log("Update user data response:", response.data);
@@ -41,6 +43,7 @@ export const registerUser = async (userData) => {
         const response = await axios.post(`${BASE_URL}/api/users/register`, userData, {
             headers: {
                 'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
             },
         });
         return response.data;
@@ -53,10 +56,14 @@ export const forgotPassword = async (email) => {
     try {
         const response = await axios.get(`${BASE_URL}/api/users/forgotPassword`, {
             params: { email },
+            headers: {
+                'accept': '*/*',
+                'ngrok-skip-browser-warning': 'true',
+            },
         });
         return response.data;
     } catch (error) {
-        throw new Error(error.response?.data?.message || 'Password reset request failed.');
+        throw new Error(error.response?.data?.message || 'Failed to send password reset request.');
     }
 };
 
@@ -67,6 +74,7 @@ export const changePassword = async (sessionId, passwordData) => {
             headers: {
                 'sessionId': sessionId,
                 'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
             },
         });
         console.log("Change password response:", response.data);
@@ -74,5 +82,73 @@ export const changePassword = async (sessionId, passwordData) => {
     } catch (error) {
         console.error("Error changing password:", error.message);
         throw new Error(error.response?.data?.message || 'Failed to change password.');
+    }
+};
+
+export const uploadProfilePic = async (sessionId, file) => {
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await axios.post(`${BASE_URL}/api/users/uploadProfilePic`, formData, {
+            headers: {
+                'accept': '*/*',
+                'sessionId': sessionId,
+                'Content-Type': 'multipart/form-data',
+                'ngrok-skip-browser-warning': 'true',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'Failed to upload profile picture.');
+    }
+};
+
+export const getProfilePic = async (sessionId) => {
+    try {
+        const response = await axios.get(`${BASE_URL}/api/users/getProfilePic`, {
+            headers: {
+                'accept': '*/*',
+                'sessionId': sessionId,
+                'ngrok-skip-browser-warning': 'true',
+            },
+            responseType: 'blob',
+        });
+        return URL.createObjectURL(response.data);
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'No profile picture.');
+    }
+};
+
+export const deleteProfilePic = async (sessionId) => {
+    try {
+        const response = await axios.delete(`${BASE_URL}/api/users/deleteProfilePic`, {
+            headers: {
+                'accept': '*/*',
+                'sessionId': sessionId,
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
+            },
+        });
+        console.log("Delete profile pic response:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("Error deleting profile picture:", error.message);
+        throw new Error(error.response?.data?.message || 'Failed to delete profile picture.');
+    }
+};
+
+export const resetPassword = async (token, passwordData) => {
+    try {
+        const response = await axios.post(`${BASE_URL}/api/users/reset?token=${token}`, passwordData, {
+            headers: {
+                'accept': '*/*',
+                'Content-Type': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
+            },
+        });
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response?.data?.message || 'Failed to reset password.');
     }
 };

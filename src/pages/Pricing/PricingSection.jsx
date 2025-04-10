@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button, Card, Col, Row } from 'react-bootstrap';
 import { Check } from 'react-bootstrap-icons';
 import { Section } from '../../layout/global';
-import { getSubscriptionDetails, updateSubscription } from '../../api/subscriptions';
-import { useUserData } from '../../store/user'; // Import useUserData
+import { getSubscriptionDetails, updateSubscription, capturePayment } from '../../api/subscriptions'; // Import capturePayment
+import { useUserData } from '../../store/user';
 
 const PricingSection = () => {
     const plans = [
@@ -23,7 +23,7 @@ const PricingSection = () => {
             id: 2,
             name: 'Monthly',
             price: '₹330 /mo',
-            priceAmount: 33000,
+            priceAmount: 33000, // Amount in paise
             features: [
                 'Always Available',
                 'Fast response speed',
@@ -58,7 +58,7 @@ const PricingSection = () => {
     ];
 
     const sessionId = localStorage.getItem('sessionId');
-    const { userData, loading: userLoading, error: userError } = useUserData(sessionId); // Fetch user data
+    const { userData, loading: userLoading, error: userError } = useUserData(sessionId);
     const [currentPlan, setCurrentPlan] = useState('Free');
     const [currentSubscriptionId, setCurrentSubscriptionId] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -86,38 +86,37 @@ const PricingSection = () => {
             }
 
             const response = await getSubscriptionDetails(sessionId);
-            console.log('Subscription response:', response);
+            console.log('PricingSection - Subscription response:', response);
 
             if (Array.isArray(response) && response.length > 0) {
                 const activeSubscription = response.find(sub => sub.status === 'Active');
                 if (activeSubscription && activeSubscription.subscriptionType) {
                     setCurrentPlan(activeSubscription.subscriptionType);
-                    setCurrentSubscriptionId(activeSubscription.id); // Set subscription ID
+                    setCurrentSubscriptionId(activeSubscription.id);
+                    localStorage.setItem('userPlan', activeSubscription.subscriptionType); // Sync localStorage
                 } else {
                     setCurrentPlan('Free');
                     setCurrentSubscriptionId(null);
+                    localStorage.setItem('userPlan', 'Free');
                 }
             } else {
                 setCurrentPlan('Free');
                 setCurrentSubscriptionId(null);
+                localStorage.setItem('userPlan', 'Free');
             }
         } catch (error) {
             console.error('Fetch subscription error:', error);
             setError(error.message || 'Failed to fetch subscription details');
             setCurrentPlan('Free');
             setCurrentSubscriptionId(null);
+            localStorage.setItem('userPlan', 'Free');
         }
     };
 
     const handleUpdateSubscription = async (planName, paymentId) => {
         try {
-            if (!sessionId) {
-                throw new Error('No session ID found');
-            }
-
-            if (!userData || !userData.id) {
-                throw new Error('User ID not available. Please log in.');
-            }
+            if (!sessionId) throw new Error('No session ID found');
+            if (!userData || !userData.id) throw new Error('User ID not available. Please log in.');
 
             const currentDate = new Date();
             const endDate = new Date();
@@ -125,24 +124,33 @@ const PricingSection = () => {
             endDate.setDate(currentDate.getDate() + plan.durationDays);
 
             const subscriptionData = {
-                id: currentSubscriptionId || 0, // Use fetched subscription ID or 0 if none
+                id: currentSubscriptionId || 0,
                 subscriptionType: planName,
                 startDate: currentDate.toISOString().split('T')[0],
                 endDate: planName === 'Free' ? null : endDate.toISOString().split('T')[0],
                 status: 'Active',
                 conversationsUsed: 0,
-                userId: userData.id, // Use userId from useUserData
+                userId: userData.id,
                 transactionId: paymentId || 'FREE_TRANS_' + Date.now(),
                 transactionTime: currentDate.toISOString().split('T')[0]
             };
 
             console.log('Sending subscription data:', subscriptionData);
-
             const response = await updateSubscription(sessionId, subscriptionData);
-            console.log('Subscription response:', response);
+            console.log('Subscription update response:', response);
             return response;
         } catch (error) {
             throw new Error(error.message || 'Failed to update subscription');
+        }
+    };
+
+    const handleCapturePayment = async (paymentId, amount) => {
+        try {
+            const response = await capturePayment(sessionId, paymentId, amount);
+            console.log('Payment capture response:', response);
+            return response;
+        } catch (error) {
+            throw new Error(error.message || 'Failed to capture payment');
         }
     };
 
@@ -152,6 +160,7 @@ const PricingSection = () => {
             try {
                 await handleUpdateSubscription('Free', null);
                 setCurrentPlan('Free');
+                localStorage.setItem('userPlan', 'Free');
                 setSuccessMessage('Successfully subscribed to Free plan.');
             } catch (err) {
                 setError(err.message);
@@ -170,13 +179,18 @@ const PricingSection = () => {
                 key: 'rzp_test_eK57VjQhXHjIGR',
                 amount: plan.priceAmount,
                 currency: 'INR',
-                name: 'Optimus Ai',
+                name: 'Medorbis Ai',
                 description: `${plan.name} Subscription`,
                 handler: async function (response) {
                     try {
-                        await handleUpdateSubscription(plan.name, response.razorpay_payment_id);
+                        const paymentId = response.razorpay_payment_id;
+                        // Capture payment
+                        await handleCapturePayment(paymentId, plan.priceAmount / 100); // Convert paise to rupees
+                        // Update subscription after capturing payment
+                        await handleUpdateSubscription(plan.name, paymentId);
                         setCurrentPlan(plan.name);
-                        setSuccessMessage(`Successfully subscribed to ${plan.name} plan. Payment ID: ${response.razorpay_payment_id}`);
+                        localStorage.setItem('userPlan', plan.name); // Sync localStorage
+                        setSuccessMessage(`Successfully subscribed to ${plan.name} plan. Payment ID: ${paymentId}`);
                     } catch (err) {
                         setError(err.message);
                     } finally {

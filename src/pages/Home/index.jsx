@@ -5,6 +5,7 @@ import { Section } from '../../layout/global';
 import { LogoLink } from '../../components';
 import { SendFill } from 'react-bootstrap-icons';
 import { Link } from 'react-router-dom';
+import { LogoFull } from '../../components/Logo/LogoFull';
 
 const data = [
     {
@@ -37,8 +38,10 @@ function Welcome() {
         <Section gap="lg">
           <Container>
             <div className="tyn-text-block text-center pb-4 pb-lg-5">
-                <LogoLink full/>
-                <h1 className="mt-3">Welcome Back to Optimus</h1>
+                <div className="tyn-logo-home">
+                <LogoFull />
+                </div>
+                <h1 className="mt-3">Welcome Back to Medorbis Ai</h1>
                 <p>Your AI-powered knowledge Bot.</p>
             </div>
             <Row className="g-3 justify-content-center text-center">

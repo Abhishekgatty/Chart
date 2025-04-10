@@ -4,29 +4,28 @@ const BASE_URL = 'http://204.12.227.152:9092/chatbotservices';
 // Login User
 export const loginUser = async (username, password) => {
     try {
-        console.log("Sending login request to:", `${BASE_URL}/api/auth/login`);
+        console.log("Sending login request to:", `${BASE_URL}/api/auth/login?username=${username}&password=${password}`);
         const response = await axios.get(
             `${BASE_URL}/api/auth/login`, 
             {
-                params: { username, password }, // Query parameters
+                params: { username, password }, // Send as query parameters
                 headers: {
-                    'Content-Type': 'application/json',
+                    'accept': '*/*', // Match Swagger
+                    'ngrok-skip-browser-warning': 'true',
                 },
             }
         );
         console.log("Login API response:", response.data);
-        // Check for invalid credentials message
         if (response.data === 'Invalid username or password') {
             throw new Error('Incorrect username or password. Please try again.');
         }
-
-        return { sessionId: response.data }; // Return the session ID
+        return { sessionId: response.data }; // Assuming response.data is the sessionId
     } catch (error) {
         console.error("Login error:", error.message);
-        throw new Error(error.response?.data?.message || error.message || 'Login failed.');
+        console.error("Response data:", error.response?.data);
+        throw error; // Let the caller handle it
     }
 };
-
 
 // Validate Session
 export const validateSession = async (sessionId) => {
@@ -38,12 +37,12 @@ export const validateSession = async (sessionId) => {
                 headers: {
                     'Content-Type': 'application/json',
                     'sessionId': sessionId, // Include sessionId in headers
+                    'ngrok-skip-browser-warning': 'true',
                 },
             }
         );
         console.log("Validation response:", response.data);
 
-        // Check if the response indicates success
         if (response.data && response.data.valid) {
             return true; // Session is valid
         } else {
@@ -54,6 +53,7 @@ export const validateSession = async (sessionId) => {
         throw new Error(error.response?.data?.message || 'Session validation failed.');
     }
 };
+
 // Logout
 export const logoutUser = async (sessionId) => {
     try {

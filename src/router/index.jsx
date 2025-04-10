@@ -19,6 +19,7 @@ import Login from '../pages/Login';
 import Register from '../pages/Register';
 import Forgot from '../pages/Forgot';
 import Voicechat from '../pages/Voicechat';
+import Reset from '../pages/Reset';
 // Protected Route Component with loading state
 const ProtectedRoute = ({ children }) => {
   const { sessionId, loading } = React.useContext(AuthContext);
@@ -88,6 +89,10 @@ const router = createBrowserRouter([
   {
     path: "/forgot",
     element: <Forgot />,
+  },
+  {
+    path: "/reset",
+    element: <Reset />,
   },
   {
     path: "*",

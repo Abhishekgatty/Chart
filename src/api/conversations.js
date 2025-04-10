@@ -9,6 +9,7 @@ export const getArchivedSessions = async (sessionId) => {
       headers: {
         'accept': '*/*',
         'sessionId': sessionId,
+        'ngrok-skip-browser-warning': 'true',
       },
     });
     return response.data;
@@ -25,6 +26,7 @@ export const getConversations = async (sessionId, pastSessionId) => {
       headers: {
         'accept': '*/*',
         'sessionId': sessionId,
+        'ngrok-skip-browser-warning': 'true',
       },
       params: {
         pastSessionId,

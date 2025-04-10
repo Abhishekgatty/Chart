@@ -20,7 +20,8 @@ export const updateUserData = async (userId, updatedData) => {
         const response = await axios.put(`${BASE_URL}/${userId}`, updatedData, {
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'ngrok-skip-browser-warning': 'true',
             }
         });
         return response.data; // Return the updated user data

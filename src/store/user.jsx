@@ -23,7 +23,8 @@ export const fetchUserData = async (sessionId) => {
     try {
         const response = await axios.get(`${BASE_URL}/api/users/user`, {
             headers: {
-                'sessionId': sessionId
+                'sessionId': sessionId,
+                'ngrok-skip-browser-warning': 'true',
             }
         });
         return response.data;

@@ -9,7 +9,7 @@ function Footer({className}) {
   return (
     <div className={compClass}>
         <div className="bg-white text-center py-3">
-            <p className="mb-0 small">2024 &copy; Optimus. Crafted By <a href="https://themeforest.net/user/themeyn" target="_blank"  className="fw-semibold">Themeyn</a> </p>
+            <p className="mb-0 small">2024 &copy; Medorbis. Crafted By <a href="https://themeforest.net/user/themeyn" target="_blank"  className="fw-semibold">Themeyn</a> </p>
         </div>
     </div>
   )

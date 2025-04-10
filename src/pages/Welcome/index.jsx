@@ -38,7 +38,7 @@ function Welcome() {
           <Container>
             <div className="tyn-text-block text-center pb-4 pb-lg-5">
                 <LogoLink full/>
-                <h1 className="mt-3">Welcome Back to Optimus</h1>
+                <h1 className="mt-3">Welcome Back to Medorbis</h1>
                 <p>Your AI-powered knowledge Bot.</p>
             </div>
             <Row className="g-3 justify-content-center text-center">

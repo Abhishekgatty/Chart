@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { loginUser } from '../../api/auth';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../store/AuthContext';
 import {
   Button,
@@ -17,19 +17,15 @@ const Login = () => {
   const navigate = useNavigate();
   const { login } = React.useContext(AuthContext);
 
-  // State for form data
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
 
-  // State for error messages
   const [errors, setErrors] = useState({});
-  // State for loading and submission status
   const [isLoading, setIsLoading] = useState(false);
   const [submitStatus, setSubmitStatus] = useState({ type: '', message: '' });
 
-  // Handle input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -38,7 +34,6 @@ const Login = () => {
     }
   };
 
-  // Validate form fields
   const validate = () => {
     const newErrors = {};
     if (!formData.username) newErrors.username = 'Username is required';
@@ -46,51 +41,49 @@ const Login = () => {
     return newErrors;
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate form inputs
     const validationErrors = validate();
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
+        setErrors(validationErrors);
+        return;
     }
 
     setIsLoading(true);
     setSubmitStatus({ type: '', message: '' });
 
     try {
-      console.log('Sending login request with:', formData);
-      const loginResponse = await loginUser(formData.username, formData.password);
-      console.log('Login response:', loginResponse);
+        console.log('Sending login request with:', formData);
+        const loginResponse = await loginUser(formData.username, formData.password);
+        console.log('Login response:', loginResponse);
+        
+        console.log('Saving sessionId:', loginResponse.sessionId);
+        localStorage.setItem('sessionId', loginResponse.sessionId);
 
-      // Store the session ID in local storage
-      localStorage.setItem('sessionId', loginResponse.sessionId);
-
-      // Log the user in and redirect
-      login(loginResponse.sessionId);
-      setSubmitStatus({
-        type: 'success',
-        message: 'Login successful',
-      });
-      setTimeout(() => navigate('/chatbot'), 2000);
+        login(loginResponse.sessionId);
+        setSubmitStatus({
+            type: 'success',
+            message: 'Login successful',
+        });
+        setTimeout(() => navigate('/chatbot'), 2000);
     } catch (error) {
-      console.error('Login error:', error);
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data ||
-        error.message ||
-        'Login failed. Please try again.';
-      setSubmitStatus({
-        type: 'error',
-        message: typeof errorMessage === 'string' ? errorMessage : 'Login failed. Please try again.',
-      });
+        console.error('Login error:', error);
+        if (error.response?.status === 401) {
+            setSubmitStatus({
+                type: 'error',
+                message: error.response?.data || 'Invalid username or password.',
+            });
+        } else {
+            setSubmitStatus({
+                type: 'error',
+                message: error.message || 'Login failed. Please try again.',
+            });
+        }
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
-
+};
   return (
     <Container>
       <Row className="justify-content-center">
@@ -101,14 +94,12 @@ const Login = () => {
           <Card className="border-0">
             <div className="p-4">
               <h3>Login</h3>
-              {/* Display submission status */}
               {submitStatus.message && (
                 <Alert variant={submitStatus.type === 'success' ? 'success' : 'danger'}>
                   {submitStatus.message}
                 </Alert>
               )}
               <Form onSubmit={handleSubmit}>
-                {/* Username Field */}
                 <Form.Group className="form-group">
                   <Form.Label htmlFor="username">Username</Form.Label>
                   <div className="form-control-wrap">
@@ -125,13 +116,12 @@ const Login = () => {
                     </Form.Control.Feedback>
                   </div>
                 </Form.Group>
-                {/* Password Field */}
                 <Form.Group className="form-group">
                   <Form.Label className="d-flex" htmlFor="password">
                     Password{' '}
-                    <Button as="a" href="/forgot" className="link link-primary ms-auto p-0">
+                    <a as="a" href="/forgot" className="link link-primary ms-auto p-0">
                       Forgot?
-                    </Button>
+                    </a>
                   </Form.Label>
                   <div className="form-control-wrap">
                     <Form.Control
@@ -148,7 +138,6 @@ const Login = () => {
                     </Form.Control.Feedback>
                   </div>
                 </Form.Group>
-                {/* Submit Button */}
                 <Button
                   variant="primary"
                   type="submit"

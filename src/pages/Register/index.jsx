@@ -20,7 +20,8 @@ function Register() {
         year: '',
         college: '',
         semester: '',
-        subscriptionName: 'Free'
+        subscriptionName: 'Free',
+        type: 'Student'
     });
 
     const [errors, setErrors] = useState({});
@@ -40,6 +41,9 @@ function Register() {
         if (!formData.userName) newErrors.userName = 'Username is required';
         if (!formData.email) newErrors.email = 'Email is required';
         if (!formData.password) newErrors.password = 'Password is required';
+        else if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)) {
+            newErrors.password = 'Password should be at least 8 characters long, include a mix of uppercase and lowercase letters, numbers, and symbols';
+        }
         if (!formData.repeatPassword) newErrors.repeatPassword = 'Repeat Password is required';
         if (formData.password && formData.repeatPassword && formData.password !== formData.repeatPassword) {
             newErrors.repeatPassword = 'Passwords do not match';
@@ -47,10 +51,12 @@ function Register() {
         if (!formData.name) newErrors.name = 'Name is required';
         if (!formData.city) newErrors.city = 'City is required';
         if (!formData.country) newErrors.country = 'Country is required';
-        if (!formData.course) newErrors.course = 'Course is required';
-        if (!formData.year) newErrors.year = 'Year is required';
-        if (!formData.college) newErrors.college = 'College is required';
-        if (!formData.semester) newErrors.semester = 'Semester is required';
+        if (formData.type === 'Student') {
+            if (!formData.course) newErrors.course = 'Course is required';
+            if (!formData.year) newErrors.year = 'Year is required';
+            if (!formData.college) newErrors.college = 'College is required';
+            if (!formData.semester) newErrors.semester = 'Semester is required';
+        }
         return newErrors;
     };
 
@@ -74,11 +80,12 @@ function Register() {
                 name: formData.name,
                 city: formData.city,
                 country: formData.country,
-                course: formData.course,
-                year: parseInt(formData.year),
-                college: formData.college,
-                semester: parseInt(formData.semester),
-                subscriptionName: formData.subscriptionName
+                course: formData.type === 'Student' ? formData.course : 'NA',
+                year: formData.type === 'Student' ? parseInt(formData.year) : 0,
+                college: formData.type === 'Student' ? formData.college : 'NA',
+                semester: formData.type === 'Student' ? parseInt(formData.semester) : 0,
+                subscriptionName: formData.subscriptionName,
+                type: formData.type
             };
 
             await registerUser(submitData);
@@ -100,7 +107,8 @@ function Register() {
                 year: '',
                 college: '',
                 semester: '',
-                subscriptionName: 'Free'
+                subscriptionName: 'Free',
+                type: 'Student'
             });
 
             setErrors({});
@@ -141,6 +149,7 @@ function Register() {
 
                                 <Form onSubmit={handleSubmit}>
                                     <Row className="g-3 gx-4">
+
                                         <Col sm="6">
                                             <Form.Group className="form-group">
                                                 <Form.Label htmlFor="userName">Username</Form.Label>
@@ -269,84 +278,108 @@ function Register() {
                                         </Col>
                                         <Col sm="6">
                                             <Form.Group className="form-group">
-                                                <Form.Label htmlFor="course">Department</Form.Label>
+                                                <Form.Label htmlFor="type">User Type</Form.Label>
                                                 <div className="form-control-wrap">
                                                     <Form.Select
-                                                        name="course"
-                                                        value={formData.course}
+                                                        name="type"
+                                                        value={formData.type}
                                                         onChange={handleChange}
-                                                        isInvalid={!!errors.course}
                                                     >
-                                                        <option value="">Select Department</option>
-                                                        <option value="Nursing">Nursing</option>
+                                                        <option value="Student">Student</option>
+                                                        <option value="Professional">Professional</option>
                                                     </Form.Select>
-                                                    <Form.Control.Feedback type="invalid">
-                                                        {errors.course}
-                                                    </Form.Control.Feedback>
                                                 </div>
                                             </Form.Group>
                                         </Col>
-                                        <Col sm="6">
-                                            <Form.Group className="form-group">
-                                                <Form.Label htmlFor="year">Year</Form.Label>
-                                                <div className="form-control-wrap">
-                                                    <Form.Select
-                                                        name="year"
-                                                        value={formData.year}
-                                                        onChange={handleChange}
-                                                        isInvalid={!!errors.year}
-                                                    >
-                                                        <option value="">Select a year</option>
-                                                        {[1, 2, 3, 4].map((year) => (
-                                                            <option key={year} value={year}>
-                                                                {year}
-                                                            </option>
-                                                        ))}
-                                                    </Form.Select>
-                                                    <Form.Control.Feedback type="invalid">
-                                                        {errors.year}
-                                                    </Form.Control.Feedback>
-                                                </div>
-                                            </Form.Group>
-                                        </Col>
-                                        <Col sm="6">
-                                            <Form.Group className="form-group">
-                                                <Form.Label htmlFor="college">College</Form.Label>
-                                                <div className="form-control-wrap">
-                                                    <Form.Control
-                                                        type="text"
-                                                        name="college"
-                                                        value={formData.college}
-                                                        onChange={handleChange}
-                                                        placeholder="Enter college"
-                                                        isInvalid={!!errors.college}
-                                                    />
-                                                    <Form.Control.Feedback type="invalid">
-                                                        {errors.college}
-                                                    </Form.Control.Feedback>
-                                                </div>
-                                            </Form.Group>
-                                        </Col>
-                                        <Col sm="6">
-                                            <Form.Group className="form-group">
-                                                <Form.Label htmlFor="semester">Semester</Form.Label>
-                                                <div className="form-control-wrap">
-                                                    <Form.Select
-                                                        name="semester"
-                                                        value={formData.semester}
-                                                        onChange={handleChange}
-                                                        isInvalid={!!errors.semester}
-                                                    >
-                                                        <option value="">Select a semester</option>
-                                                        <option value="1">1</option>
-                                                        <option value="2">2</option>
-                                                    </Form.Select>
-                                                    <Form.Control.Feedback type="invalid">
-                                                        {errors.semester}
-                                                    </Form.Control.Feedback>
-                                                </div>
-                                            </Form.Group>
-                                        </Col>
+                                        {formData.type === 'Student' && (
+                                            <>
+                                                <Col sm="6">
+                                                    <Form.Group className="form-group">
+                                                        <Form.Label htmlFor="course">Course <sup title="course studying" style={{
+                                                            padding: '0px 6px',
+                                                            background: '#5353532b',
+                                                            borderRadius: '50%',
+                                                            cursor: 'pointer'
+                                                        }}>i</sup></Form.Label>
+                                                        <div className="form-control-wrap">
+                                                            <Form.Select
+                                                                name="course"
+                                                                value={formData.course}
+                                                                onChange={handleChange}
+                                                                isInvalid={!!errors.course}
+                                                            >
+                                                                <option value="">Select Course</option>
+                                                                <option value="Nursing">Nursing</option>
+                                                            </Form.Select>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                {errors.course}
+                                                            </Form.Control.Feedback>
+                                                        </div>
+                                                    </Form.Group>
+                                                </Col>
+                                                <Col sm="6">
+                                                    <Form.Group className="form-group">
+                                                        <Form.Label htmlFor="year">Year</Form.Label>
+                                                        <div className="form-control-wrap">
+                                                            <Form.Select
+                                                                name="year"
+                                                                value={formData.year}
+                                                                onChange={handleChange}
+                                                                isInvalid={!!errors.year}
+                                                            >
+                                                                <option value="">Select a year</option>
+                                                                {[1, 2, 3, 4].map((year) => (
+                                                                    <option key={year} value={year}>
+                                                                        {year}
+                                                                    </option>
+                                                                ))}
+                                                            </Form.Select>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                {errors.year}
+                                                            </Form.Control.Feedback>
+                                                        </div>
+                                                    </Form.Group>
+                                                </Col>
+                                                <Col sm="6">
+                                                    <Form.Group className="form-group">
+                                                        <Form.Label htmlFor="college">College</Form.Label>
+                                                        <div className="form-control-wrap">
+                                                            <Form.Control
+                                                                type="text"
+                                                                name="college"
+                                                                value={formData.college}
+                                                                onChange={handleChange}
+                                                                placeholder="Enter college"
+                                                                isInvalid={!!errors.college}
+                                                            />
+                                                            <Form.Control.Feedback type="invalid">
+                                                                {errors.college}
+                                                            </Form.Control.Feedback>
+                                                        </div>
+                                                    </Form.Group>
+                                                </Col>
+                                                <Col sm="6">
+                                                    <Form.Group className="form-group">
+                                                        <Form.Label htmlFor="semester">Semester</Form.Label>
+                                                        <div className="form-control-wrap">
+                                                            <Form.Select
+                                                                name="semester"
+                                                                value={formData.semester}
+                                                                onChange={handleChange}
+                                                                isInvalid={!!errors.semester}
+                                                            >
+                                                                <option value="">Select a semester</option>
+                                                                <option value="1">1</option>
+                                                                <option value="2">2</option>
+                                                            </Form.Select>
+                                                            <Form.Control.Feedback type="invalid">
+                                                                {errors.semester}
+                                                            </Form.Control.Feedback>
+                                                        </div>
+                                                    </Form.Group>
+                                                </Col>
+                                            </>
+                                        )}
                                         <Col sm="12">
                                             <Button
                                                 variant="primary"

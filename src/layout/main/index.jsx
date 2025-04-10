@@ -16,7 +16,7 @@ function Default({title,content, fullscreen, footer, ...props}) {
   return (
     <HelmetProvider>
       <Helmet>
-          <title>{`${title ? title + " | " : '' }Optimus | Chat Application`}</title>
+          <title>{`${title ? title + " | " : '' }Medorbis | Chat Application`}</title>
       </Helmet>
       <AppRoot> 
         <Appbar />

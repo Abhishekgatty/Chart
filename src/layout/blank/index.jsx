@@ -12,7 +12,7 @@ function Default({title,content, ...props}) {
   return (
     <HelmetProvider>
       <Helmet>
-          <title>{`${title ? title + " | " : '' }Optimus | Chat Application`}</title>
+          <title>{`${title ? title + " | " : '' }Medorbis | Chat Application`}</title>
       </Helmet>
       <AppRoot>
         <AppContent className={contentClass}>

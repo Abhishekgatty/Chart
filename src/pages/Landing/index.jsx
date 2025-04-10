@@ -132,7 +132,7 @@ function Landing() {
                           <h1 className="display-4 mb-2 d-none d-md-block">
                             <span className="text-primary">Chat Application</span> <br /> <span className="text-dark"></span>
                           </h1>
-                          <p>Clean and modern chat uikit template based on Bootstrap 5. Its build with well optimized mobile first responsive approach. Optimus built with SASS, CSS3 and React JS.</p>
+                          <p>Clean and modern chat uikit template based on Bootstrap 5. Its build with well optimized mobile first responsive approach. Medorbis built with SASS, CSS3 and React JS.</p>
                           <ul className="tyn-list-inline gap gap-4 mt-4 align-items-center justify-content-center justify-content-lg-start">
                               <li>
                                 <Link to="/" target="_blank" className="btn btn-primary gap-0">
@@ -205,7 +205,7 @@ function Landing() {
                         <Col xxl="4" lg="5" md="7" sm="9">
                             <div className="text-center text-light">
                                 <h2 className="text-white">Make your idea a reality today</h2>
-                                <p>Purchase Optimus to make your chat Applicationbeautiful.</p>
+                                <p>Purchase Medorbis to make your chat Applicationbeautiful.</p>
                                 <Button variant="primary" as="a" href="https://themeforest.net/item/Optimus-chat-application-react-template/51520402" target="_blank">Purchase Optimus</Button>
                                 <p className="text-success small mt-3 mb-0">Free Lifetime Update</p>
                             </div>

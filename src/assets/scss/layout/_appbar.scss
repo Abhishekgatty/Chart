@@ -100,10 +100,18 @@ $appbar-nav-gap-x:                    $body-gap-x;
 @include media-breakpoint-up(md){
     .#{$app-prefix}logo{
         display: inline-flex;
-        height: 40px;
+        height: 60px;
         &-sm{
             height: 32px;
         }
+        
+        svg,img{
+            height: 100%;
+        }
+    }
+    .#{$app-prefix}logo-home {
+        display: inline-flex;
+        height: 120px;
         svg,img{
             height: 100%;
         }

@@ -24,11 +24,11 @@ function Voicechat() {
                         <nav aria-label="breadcrumb">
                             <ol className="breadcrumb justify-content-center">
                                 <li className="breadcrumb-item"><Link to="/">Home</Link></li>
-                                <li className="breadcrumb-item active" aria-current="page">Usecase Modals</li>
+                                <li className="breadcrumb-item active" aria-current="page">Voice Chat</li>
                             </ol>
                         </nav>
-                        <h1 className="display-6">Usecase Modals</h1>
-                        <p>You get lot's of essential pre designed modal for you chat application.</p>
+                        <h1 className="display-6">Coming Soon</h1>
+                        
                     </Col>
                 </Row>
             </div>

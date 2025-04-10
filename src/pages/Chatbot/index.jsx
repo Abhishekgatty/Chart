@@ -11,6 +11,45 @@ import { useUserData } from '../../store/user';
 import classNames from 'classnames';
 import axios from 'axios';
 import { getArchivedSessions, getConversations } from '../../api/conversations';
+import { getProfilePic } from '../../api/user';
+import { getSubscriptionDetails } from '../../api/subscriptions';
+
+// Typing animation CSS (unchanged)
+const typingAnimationStyles = `
+  .typing-animation {
+    display: inline-flex;
+    align-items: center;
+  }
+  .typing-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #888;
+    border-radius: 50%;
+    margin: 0 2px;
+    animation: typing 1.4s infinite ease-in-out;
+  }
+  .typing-dot:nth-child(1) {
+    animation-delay: 0s;
+  }
+  .typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  @keyframes typing {
+    0%, 80%, 100% {
+      opacity: 0.2;
+    }
+    40% {
+      opacity: 1;
+    }
+  }
+`;
+
+const styleSheet = document.createElement('style');
+styleSheet.textContent = typingAnimationStyles;
+document.head.appendChild(styleSheet);
 
 const CHATBOT_BASE_URL = 'http://204.12.227.152:8000';
 
@@ -21,24 +60,107 @@ function Chatbot() {
   const [conversations, setConversations] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const [showMain, setShowMain] = useState(true); // Show main chat by default
-  const [loading, setLoading] = useState(false); // No initial loading
+  const [showMain, setShowMain] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [inputMessage, setInputMessage] = useState('');
   const [isBotTyping, setIsBotTyping] = useState(false);
-  const [isArchivedView, setIsArchivedView] = useState(false); // Track if viewing archived conversation
-  const [suggestionTopic, setSuggestionTopic] = useState(''); // State for suggestion_topic
-  const [suggestedQuestions, setSuggestedQuestions] = useState(''); // State for suggested_questions
+  const [isArchivedView, setIsArchivedView] = useState(false);
+  const [suggestionTopic, setSuggestionTopic] = useState('');
+  const [suggestedQuestions, setSuggestedQuestions] = useState('');
+  const [displayedResponse, setDisplayedResponse] = useState('');
+  const [fullResponse, setFullResponse] = useState('');
+  const [profilePic, setProfilePic] = useState(null);
   const chatWindow = useRef(null);
   const [currentPlan, setCurrentPlan] = useState('Free');
 
   const sessionId = localStorage.getItem('sessionId');
   const { userData, loading: userLoading, error: userError } = useUserData(sessionId);
 
-  // Initialize a new conversation on mount/refresh
+  console.log('Chatbot - Initial render - sessionId:', sessionId);
+  console.log('Chatbot - Initial render - userData:', userData, 'userLoading:', userLoading, 'userError:', userError);
+
+  useEffect(() => {
+    const fetchProfilePic = async () => {
+      if (!sessionId) return;
+      try {
+        console.log('Chatbot - Fetching profile picture with sessionId:', sessionId);
+        const imageUrl = await getProfilePic(sessionId);
+        console.log('Chatbot - Successfully fetched profile picture URL:', imageUrl);
+        setProfilePic(imageUrl);
+      } catch (err) {
+        console.error('Chatbot - Failed to fetch profile picture:', err.message);
+        setProfilePic('/images/avatar/1.jpg');
+      }
+    };
+
+    fetchProfilePic();
+  }, [sessionId]);
+
+  useEffect(() => {
+    console.log('Chatbot - Running initialization effect');
+    const fetchSubscription = async () => {
+      try {
+        if (!sessionId) return;
+        console.log('Chatbot - Fetching subscription with sessionId:', sessionId);
+        const response = await getSubscriptionDetails(sessionId);
+        console.log('Chatbot - Subscription response:', response);
+        const activeSubscription = Array.isArray(response) && response.find(sub => sub.status === 'Active');
+        const plan = activeSubscription ? activeSubscription.subscriptionType : 'Free';
+        setCurrentPlan(plan);
+        localStorage.setItem('userPlan', plan);
+      } catch (err) {
+        console.error('Chatbot - Error fetching subscription:', err.message);
+        setCurrentPlan('Free');
+        localStorage.setItem('userPlan', 'Free');
+      }
+    };
+
+    if (sessionId && !userLoading && userData) {
+      initializeNewConversation();
+      fetchArchivedSessions();
+      fetchSubscription();
+    } else {
+      console.log('Chatbot - Waiting for sessionId or userData');
+    }
+  }, [sessionId, userLoading, userData]);
+
+  useEffect(() => {
+    if (chatWindow.current) {
+      const scrollElement = chatWindow.current.contentWrapperEl;
+      scrollElement.scrollTop = scrollElement.scrollHeight;
+    }
+  }, [selectedConversation, displayedResponse]);
+
+  // Typing effect for bot response
+  useEffect(() => {
+    if (fullResponse && !isBotTyping) {
+      let index = 0;
+      const speed = 10; // Typing speed (ms per character)
+      setDisplayedResponse('');
+
+      const typeResponse = () => {
+        if (index < fullResponse.length) {
+          setDisplayedResponse(fullResponse.slice(0, index + 1));
+          index++;
+          setTimeout(typeResponse, speed);
+        } else {
+          setSelectedConversation((prev) => ({
+            ...prev,
+            messages: [...prev.messages.slice(0, -1), { role: 'bot', content: fullResponse }],
+          }));
+          setFullResponse('');
+        }
+      };
+
+      typeResponse();
+    }
+  }, [fullResponse]);
+
   const initializeNewConversation = () => {
+    console.log('Chatbot - Initializing new conversation');
     const newConversation = {
-      id: Date.now().toString(), // Temporary ID
+      id: Date.now().toString(),
       messages: [],
       timestamp: new Date().toISOString(),
     };
@@ -71,20 +193,38 @@ function Chatbot() {
       setLoading(true);
       if (!sessionId) throw new Error('No session ID found');
       const data = await getConversations(sessionId, pastSessionId);
+
+      const allMessages = [];
+      data.forEach(conv => {
+        if (Array.isArray(conv.messages)) {
+          conv.messages.forEach(msg => {
+            if (msg.user_message) {
+              allMessages.push({ role: 'user', content: msg.user_message });
+            }
+            if (msg.actual_response) {
+              allMessages.push({ role: 'bot', content: msg.actual_response });
+            }
+          });
+        }
+      });
+
+      const combinedConversation = {
+        id: pastSessionId,
+        messages: allMessages,
+        timestamp: data.length > 0 ? data[0].timestamp : new Date().toISOString(),
+      };
+
       setConversations(data);
       setSelectedSession(pastSessionId);
+      setSelectedConversation(combinedConversation);
       setShowMain(true);
-      setIsArchivedView(true); // Mark as archived view
-      setSuggestionTopic(''); // Clear suggestions when viewing archived
+      setIsArchivedView(true);
+      setSuggestionTopic('');
       setSuggestedQuestions('');
-      if (data.length > 0) {
-        setSelectedConversation(data[0]); // Select first conversation
-      } else {
-        setSelectedConversation(null); // No conversations in this session
-      }
     } catch (err) {
       setError('Failed to load conversations');
       console.error('Error fetching conversations:', err);
+      setSelectedConversation({ id: pastSessionId, messages: [], timestamp: new Date().toISOString() });
     } finally {
       setLoading(false);
     }
@@ -114,6 +254,8 @@ function Chatbot() {
 
     if (!messageInput) {
       setInputMessage('');
+      setSuggestionTopic(''); // Clear suggestions when user types manually
+      setSuggestedQuestions('');
     }
 
     setIsBotTyping(true);
@@ -121,41 +263,84 @@ function Chatbot() {
     try {
       if (!sessionId || !userData?.id) throw new Error('Required user data missing');
 
-      const url = `${CHATBOT_BASE_URL}/chatbot/send_message`;
-      const response = await axios.post(url, null, {
+      const userType = userData.year ? 1 : 0;
+
+      let requestBody;
+      if (userType === 0) {
+        requestBody = {
+          user_type: 0,
+          user_id: String(userData.id),
+          session_id: String(sessionId),
+          user_question: messageToSend,
+        };
+      } else {
+        requestBody = {
+          user_type: 1,
+          user_id: String(userData.id),
+          session_id: String(sessionId),
+          user_question: messageToSend,
+          user_department: String(userData.course || 'Nursing'),
+          user_year: String(userData.year || '1'),
+          user_semester: String(userData.semester || '2'),
+        };
+      }
+
+      console.log('Chatbot - Sending request to API:', {
+        url: `${CHATBOT_BASE_URL}/api/v1/chat`,
+        method: 'POST',
         headers: {
-          'Accept': 'application/json',
+          'accept': 'application/json',
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
-        params: {
-          user_id: userData.id,
-          session_id: sessionId,
-          user_department: userData.course,
-          user_year: userData.year,
-          user_semester: userData.semester,
-          message: messageToSend,
+        body: JSON.stringify(requestBody, null, 2),
+      });
+
+      const response = await axios.post(`${CHATBOT_BASE_URL}/api/v1/chat`, requestBody, {
+        headers: {
+          'accept': 'application/json',
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
       });
 
+      console.log('Chatbot - Response received:', response.data);
       const data = response.data;
-      const botMessage = { role: 'bot', content: data.actual_response || 'Error getting response' };
-      const updatedConversation = {
-        ...tempConversation,
-        messages: [...tempConversation.messages, botMessage],
-        timestamp: new Date().toISOString(),
-      };
+      let botResponse = data.final_result || 'Error getting response';
 
-      setSelectedConversation(updatedConversation);
-      setSuggestionTopic(data.suggestion_topic || ''); // Store suggestion_topic
-      setSuggestedQuestions(data.suggested_questions || ''); // Store suggested_questions
-    } catch (err) {
-      console.error('Error sending message:', err);
-      setError(err.response?.data?.message || err.message);
-      const errorMessage = { role: 'bot', content: `Sorry, there was an error: ${err.message}` };
-      setSelectedConversation(prev => ({
+      // Append suggestions to the response with separate lines
+      if (data.suggested_topics || data.suggested_questions) {
+        setSuggestionTopic(data.suggested_topics || '');
+        setSuggestedQuestions(data.suggested_questions || '');
+        botResponse += `\n\n**Suggested Topic:** ${data.suggested_topics || ''}\n\n**Suggested Question:** ${data.suggested_questions || ''}\n\nWould you like to proceed with the suggested question?`;
+      }
+
+      setSelectedConversation((prev) => ({
         ...prev,
-        messages: prev?.messages ? [...prev.messages, errorMessage] : [errorMessage],
+        messages: [...prev.messages, { role: 'bot', content: '' }],
       }));
+      setFullResponse(botResponse);
+    } catch (err) {
+      console.error('Chatbot - Error sending message:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+      });
+
+      let errorMessageContent = 'Sorry, there was an error processing your request';
+      if (err.response?.status === 422) {
+        const validationErrors = err.response?.data?.detail || 'Unknown validation error';
+        errorMessageContent = `Invalid request: ${JSON.stringify(validationErrors)}`;
+      } else {
+        errorMessageContent = `Sorry, there was an error: ${err.message}`;
+      }
+
+      setFullResponse(errorMessageContent);
+      setSelectedConversation((prev) => ({
+        ...prev,
+        messages: [...prev.messages, { role: 'bot', content: '' }],
+      }));
+      setError(err.response?.data?.message || err.message);
     } finally {
       setIsBotTyping(false);
     }
@@ -163,25 +348,31 @@ function Chatbot() {
 
   const handleSuggestionResponse = (response) => {
     if (response === 'yes' && suggestedQuestions) {
-      handleSendMessage(suggestedQuestions); // Send suggested question as a new message
+      handleSendMessage(suggestedQuestions); // Send the suggested question
+    } else {
+      setSuggestionTopic('');
+      setSuggestedQuestions('');
     }
-    setSuggestionTopic(''); // Clear suggestion after response
-    setSuggestedQuestions('');
   };
 
-  useEffect(() => {
-    initializeNewConversation(); // Start with new conversation on mount/refresh
-    fetchArchivedSessions(); // Fetch archived sessions for the sidebar
-    const userPlan = localStorage.getItem('userPlan') || 'Free';
-    setCurrentPlan(userPlan);
-  }, []);
-
-  useEffect(() => {
-    if (chatWindow.current) {
-      const scrollElement = chatWindow.current.contentWrapperEl;
-      scrollElement.scrollTop = scrollElement.scrollHeight;
+  const getPlanButtonText = () => {
+    if (currentPlan === 'Free') {
+      return (
+        <>
+          <PersonUp />
+          <span className="small text-nowrap mt-n1">Become Pro</span>
+        </>
+      );
+    } else {
+      return (
+        <>
+          <PersonUp />
+          <span className="small text-nowrap mt-n1">{currentPlan} Plan</span>
+          <span className="small text-nowrap d-block" style={{ fontSize: '10px' }}>Upgrade Now</span>
+        </>
+      );
     }
-  }, [selectedConversation]);
+  };
 
   return (
     <Layout title="Chatbot" content="tyn-content-full-height tyn-chatbot tyn-chatbot-page has-aside-base">
@@ -210,7 +401,7 @@ function Chatbot() {
                 <h3 className="tyn-aside-title tyn-title">Chat Archive</h3>
               </div>
               <div className="tyn-aside-head-tools">
-                <ul className="tyn-list-inline gap gap-3">
+                <ul className="tyn-list-inline gap gap-3 p-2">
                   <li>
                     <Button
                       variant="light"
@@ -225,57 +416,18 @@ function Chatbot() {
               </div>
             </div>
             <SimpleBar className="tyn-aside-body">
-              {/* <ul className="tyn-aside-list">
-                {loading && archivedSessions.length === 0 ? (
-                  <div>Loading archived sessions...</div>
-                ) : archivedSessions.length > 0 ? (
-                  archivedSessions.map((session) => (
-                    <li
-                      key={session.sessionId}
-                      className={classNames({
-                        'tyn-aside-item': true,
-                        active: session.sessionId === selectedSession,
-                      })}
-                      onClick={() => fetchConversations(session.sessionId)}
-                    >
-                      <Media.Group>
-                        <Media size="sm">
-                          <ChatRightTextFill />
-                        </Media>
-                        <Media.Col>
-                          <div className="content">
-                            <div>{new Date(session.timestamp).toLocaleString()}</div>
-                            <small>Messages: {session.conversationCount}</small>
-                          </div>
-                        </Media.Col>
-                      </Media.Group>
-                    </li>
-                  ))
-                ) : (
-                  <div>No archived sessions found.</div>
-                )}
-              </ul> */}
+              {/* Archived sessions list (unchanged) */}
             </SimpleBar>
             <div className="tyn-aside-foot">
               <div className="w-100">
                 <Row as="ul" className="gx-3">
                   <Col key="upgrade-btn" as="li" xs="6">
-                    {currentPlan === 'Free' ? (
-                      <Link to="/pricing" className="btn btn-light btn-lg w-100 flex-column py-2 pt-3">
-                        <PersonUp />
-                        <span className="small text-nowrap mt-n1">Become Pro</span>
-                      </Link>
-                    ) : (
-                      <Button
-                        variant="light"
-                        size="lg"
-                        className="w-100 flex-column py-2 pt-3"
-                        disabled
-                      >
-                        <PersonUp />
-                        <span className="small text-nowrap mt-n1">Premium Member</span>
-                      </Button>
-                    )}
+                    <Link 
+                      to="/pricing" 
+                      className={`btn ${currentPlan === 'Free' ? 'btn-primary' : 'btn-outline-primary'} btn-lg w-100 flex-column py-2 pt-3`}
+                    >
+                      {getPlanButtonText()}
+                    </Link>
                   </Col>
                   <Col key="clear-archive-btn" as="li" xs="6">
                     <Button
@@ -328,7 +480,7 @@ function Chatbot() {
                   <div className="tyn-qa-item">
                     <div className="tyn-qa-avatar">
                       <Media size="md">
-                        <img src="images/avatar/bot-1.jpg" alt="" />
+                        <img src="images/avatar/bot-1.jpg" alt="Bot" />
                       </Media>
                     </div>
                     <div className="tyn-qa-message tyn-text-block">
@@ -343,13 +495,13 @@ function Chatbot() {
                       key={index}
                       className={classNames('tyn-qa-item', {
                         'd-flex flex-row': item.role === 'bot',
-                        'd-flex flex-col-reverse': item.role === 'user',
+                        'd-flex flex-row row-reverse': item.role === 'user',
                       })}
                     >
                       {item.role === 'bot' && (
                         <div className="tyn-qa-avatar me-2">
                           <Media size="md">
-                            <img src="images/avatar/bot-1.jpg" alt="" />
+                            <img src="images/avatar/bot-1.jpg" alt="Bot" />
                           </Media>
                         </div>
                       )}
@@ -359,12 +511,35 @@ function Chatbot() {
                           'text-end': item.role === 'user',
                         })}
                       >
-                        <Markdown>{item.content}</Markdown>
+                        <Markdown>
+                          {item.role === 'bot' && index === selectedConversation.messages.length - 1 && fullResponse
+                            ? displayedResponse
+                            : item.content}
+                        </Markdown>
+                        {item.role === 'bot' && index === selectedConversation.messages.length - 1 && !fullResponse && (suggestionTopic || suggestedQuestions) && (
+                          <div className="mt-2">
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              className="me-2"
+                              onClick={() => handleSuggestionResponse('yes')}
+                            >
+                              Yes
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => handleSuggestionResponse('no')}
+                            >
+                              No
+                            </Button>
+                          </div>
+                        )}
                       </div>
                       {item.role === 'user' && (
                         <div className="tyn-qa-avatar ms-2">
                           <Media size="md">
-                            <img src="images/avatar/1.jpg" alt="" />
+                            <img src={profilePic || '/images/avatar/1.jpg'} alt="User" />
                           </Media>
                         </div>
                       )}
@@ -374,52 +549,15 @@ function Chatbot() {
                     <div className="tyn-qa-item d-flex flex-row">
                       <div className="tyn-qa-avatar me-2">
                         <Media size="md">
-                          <img src="images/avatar/bot-1.jpg" alt="" />
+                          <img src="images/avatar/bot-1.jpg" alt="Bot" />
                         </Media>
                       </div>
                       <div className="tyn-qa-message tyn-text-block text-start">
-                        <span>Typing...</span>
-                      </div>
-                    </div>
-                  )}
-                  {(suggestionTopic || suggestedQuestions) && (
-                    <div className="tyn-qa-item d-flex flex-row">
-                      <div className="tyn-qa-avatar me-2">
-                        <Media size="md">
-                          <img src="images/avatar/bot-1.jpg" alt="" />
-                        </Media>
-                      </div>
-                      <div className="tyn-qa-message tyn-text-block text-start">
-                        {suggestionTopic && (
-                          <p>
-                            <strong>Suggestion Topic:</strong> <Markdown>{suggestionTopic}</Markdown>
-                          </p>
-                        )}
-                        {suggestedQuestions && (
-                          <p>
-                            <strong>Suggested Question:</strong> <Markdown>{suggestedQuestions}</Markdown>
-                          </p>
-                        )}
-                        <div className="mt-2">
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            className="me-2"
-                            onClick={() => handleSuggestionResponse('yes')}
-                          >
-                            Yes
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handleSuggestionResponse('no')}
-                          >
-                            No
-                          </Button>
-                        </div>
-                        <p style={{ fontSize: '10px', color: 'green', marginTop: '10px' }}>
-                          Note: Click yes to proceed with suggested question
-                        </p>
+                        <span className="typing-animation">
+                          <span className="typing-dot"></span>
+                          <span className="typing-dot"></span>
+                          <span className="typing-dot"></span>
+                        </span>
                       </div>
                     </div>
                   )}
@@ -439,7 +577,7 @@ function Chatbot() {
                     }
                   }}
                   placeholder="Type your message..."
-                  disabled={isArchivedView || isBotTyping} // Disable when archived or typing
+                  disabled={isArchivedView || isBotTyping}
                 />
                 <ul className="tyn-list-inline me-n2 my-1">
                   <li key="send-btn">
@@ -448,7 +586,7 @@ function Chatbot() {
                       size="md"
                       className="btn-icon btn-pill"
                       onClick={() => handleSendMessage()}
-                      disabled={isArchivedView || isBotTyping} // Disable button too
+                      disabled={isArchivedView || isBotTyping}
                     >
                       <SendFill />
                     </Button>
