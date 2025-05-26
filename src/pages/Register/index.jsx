@@ -369,8 +369,8 @@ function Register() {
                                                                 isInvalid={!!errors.semester}
                                                             >
                                                                 <option value="">Select a semester</option>
-                                                                <option value="1">1</option>
-                                                                <option value="2">2</option>
+                                                                <option value="1">First</option>
+                                                                <option value="2">Second</option>
                                                             </Form.Select>
                                                             <Form.Control.Feedback type="invalid">
                                                                 {errors.semester}

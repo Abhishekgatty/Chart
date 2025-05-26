@@ -20,6 +20,10 @@ import Register from '../pages/Register';
 import Forgot from '../pages/Forgot';
 import Voicechat from '../pages/Voicechat';
 import Reset from '../pages/Reset';
+import Qa from '../pages/QA/Qa';
+import About from '../pages/About/About';
+import Services from '../pages/Services/Services';
+import Answer from '../pages/Answer/Answer';
 // Protected Route Component with loading state
 const ProtectedRoute = ({ children }) => {
   const { sessionId, loading } = React.useContext(AuthContext);
@@ -45,6 +49,10 @@ const router = createBrowserRouter([
   {
     path: "/chats",
     element: <Chatbot />,
+  },
+  {
+path:"/chatbot-s2",
+element:<Chatbot2/>,
   },
   {
     path: "/contacts",
@@ -95,9 +103,26 @@ const router = createBrowserRouter([
     element: <Reset />,
   },
   {
-    path: "*",
+    path: "/n",
     element: <NotFound />,
   },
+  {
+    path:"/qa",
+    element:<Qa/>,
+  },
+  {
+    path:"/about",
+    element:<About/>
+  },
+  {
+    path:"/services",
+    element:<Services/>
+  },
+  {
+    path:"/answer",
+    element:<Answer/>
+  }
+
 ]);
 
 function Router() {

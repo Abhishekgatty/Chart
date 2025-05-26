@@ -94,7 +94,7 @@ function Welcome() {
           </Container>
         </Section>
       </div>
-    </Layout>
+     </Layout> 
   )
 }
 

@@ -9,69 +9,90 @@ import MenuDropdown from './Dropdowns/Menu';
 import NotificationDropdown from './Dropdowns/Notification';
 import ProfileDropdown from './Dropdowns/Profile';
 
-function Appbar({className}) {
+function Appbar({ className }) {
     const compClass = classNames({
         "tyn-appbar": true,
         [className]: className,
     });
-  return (
-    <nav className={compClass}>
-        <div className="tyn-appbar-wrap">
-            <div className="tyn-appbar-logo">
-                <LogoLink to="/" />
+    return (
+        <nav className={compClass}>
+            <div className="tyn-appbar-wrap">
+                <div className="tyn-appbar-logo">
+                    <LogoLink to="/" />
+                </div>
+                <div className="tyn-appbar-content">
+                    <AppbarNav align="start">
+                        <AppbarItem show='sm'>
+                            <AppbarLink icon={<Wechat />} text="ChatBot" link="/chatbot" />
+                        </AppbarItem>
+                        {/* <AppbarItem show='sm'>
+                            <AppbarLink icon={<Mic />} text="VoiceChat" link="/voicechat" />
+                        </AppbarItem> */}
+                        {/* chart bot 2 */}
+                        {/* <AppbarItem show='sm'>
+                            <AppbarLink icon={<Wechat />} text="ChatBot" link="/chatbot-s2" />
+                        </AppbarItem> */}
+                           {/* QA */}
+                           <AppbarItem show='sm'>
+                            <AppbarLink icon={<Wechat />} text="QA" link="/qa" />
+                        </AppbarItem>
+                        {/* About */}
+                        <AppbarItem show='sm'>
+                            <AppbarLink icon={<Wechat />} text="About Us" link="/about" />
+                        </AppbarItem>
+                        {/* services */}
+                         <AppbarItem show='sm'>
+                            <AppbarLink icon={<Wechat />} text="Services" link="/services" />
+                        </AppbarItem>
+                         <AppbarItem show='sm'>
+                            <AppbarLink icon={<Wechat />} text="faq" link="/faq" />
+                        </AppbarItem>
+                        
+
+                    </AppbarNav>
+                    <AppbarNav align="end">
+                        <AppbarItem>
+                            <ProfileDropdown />
+                        </AppbarItem>
+                    </AppbarNav>
+                </div>
             </div>
-            <div className="tyn-appbar-content">
-                <AppbarNav align="start">
-                    <AppbarItem show='sm'>
-                        <AppbarLink icon={<Wechat />} text="ChatBot" link="/chatbot" />
-                    </AppbarItem>
-                    <AppbarItem show='sm'>
-                        <AppbarLink icon={<Mic />} text="VoiceChat" link="/voicechat" />
-                    </AppbarItem>
-                </AppbarNav>
-                <AppbarNav align="end">
-                    <AppbarItem>
-                        <ProfileDropdown />
-                    </AppbarItem>
-                </AppbarNav>
-            </div>
-        </div>
-    </nav>
-  )
+        </nav>
+    )
 }
 
-function AppbarNav({className,children,align}){
+function AppbarNav({ className, children, align }) {
     const compClass = classNames({
         "tyn-appbar-nav": true,
         [`tyn-appbar-nav-${align}`]: align,
         [className]: className,
     });
-    return(
+    return (
         <ul className={compClass}>
             {children}
         </ul>
     )
 }
 
-function AppbarItem({className,children,show}){
+function AppbarItem({ className, children, show }) {
     const compClass = classNames({
         "tyn-appbar-item": true,
-        [`d-none d-${show}-inline-flex`] : show,
+        [`d-none d-${show}-inline-flex`]: show,
         [className]: className,
     });
-    return(
+    return (
         <li className={compClass}>
             {children}
         </li>
     )
 }
 
-function AppbarLink({className,icon,text,link,badge}){
+function AppbarLink({ className, icon, text, link, badge }) {
     const compClass = classNames({
         "tyn-appbar-link position-relative": true,
         [className]: className,
     });
-    return(
+    return (
         <NavLink className={compClass} to={link}>
             {icon}
             {badge && <Badge pill bg="primary" className="position-absolute top-0 end-0 mt-n1 me-n1">{badge}</Badge>}

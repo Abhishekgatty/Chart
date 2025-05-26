@@ -13,6 +13,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import chatbot from '../../store/chatbot'
 import classNames from 'classnames';
 
+
 function Chatbot2() {
   let [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -43,7 +44,8 @@ function Chatbot2() {
 }, [selected])
 
   return (
-    <Layout title="Chatbot" content="tyn-content-full-height tyn-chatbot tyn-chatbot-page has-aside-base">
+     <Layout title="Chatbot" content="tyn-content-full-height tyn-chatbot tyn-chatbot-page has-aside-base">
+    
       <div className="tyn-aside tyn-aside-base">
         <div className="tyn-aside-head">
             <div className="tyn-aside-head-text">
@@ -56,6 +58,7 @@ function Chatbot2() {
                 </ul>
             </div>
         </div>
+        {/* archive section start */}
         <SimpleBar className="tyn-aside-body">
             <ul className="tyn-aside-list">
               {chatbotData.map((item,index)=>{
@@ -79,7 +82,7 @@ function Chatbot2() {
                             <ul className="tyn-media-option-list">
                                 <li>
                                     <Button variant="light" size="md" className="btn-icon btn-pill">
-                                        <Trash />
+                                    <Trash />
                                     </Button>
                                 </li>
                             </ul>
@@ -90,6 +93,9 @@ function Chatbot2() {
               })}
             </ul>
         </SimpleBar>
+
+{/* archive section ends */}
+
         <div className="tyn-aside-foot">
             <div className="w-100">
                 <Row as="ul" className="gx-3">
@@ -109,7 +115,10 @@ function Chatbot2() {
             </div>
         </div>
       </div>
+
+      {/* for input */}
       <div className={classNames({ "tyn-main":true, "main-shown": showMain })} id="tynMain">
+     
             <ul className="tyn-list-inline d-md-none translate-middle-x position-absolute start-50 z-1">
                 <li>
                     <Button variant="white" className="btn-icon btn-pill" onClick={()=>{
@@ -119,9 +128,11 @@ function Chatbot2() {
                     </Button>
                 </li>
             </ul>
+            {/* design *******************************************************************************************************/}
             <SimpleBar ref={chatWindow} className="tyn-chat-body my-4 px-4" id="tynBotBody">
-                <div className="container px-0">
+                 <div className="container px-0">
                     <div className="tyn-qa tyn-qa-bubbly" id="tynBotReply">
+                   
                     {selected?.chats?.map((item,index)=> {
                         return(
                             <div key={index} className="tyn-qa-item">
@@ -182,12 +193,15 @@ function Chatbot2() {
                         )
                     })}
                     </div>
-                </div>
+                </div> 
             </SimpleBar>
             <div className="tyn-chat-form border-0 px-4">
                 <div className="container px-0">
-                    <div className="ps-3 pe-4 py-3 bg-white mb-4 rounded-3">
+                    {/* input */}
+                    <div className="ps-3 pe-4 py-3 bg-white mb-4 rounded-3"> 
+                  
                       <div className="tyn-chat-form-enter">
+                      
                         <div className="tyn-chat-form-input" id="tynBotInput" placeholder="text" contentEditable></div>
                         <ul className="tyn-list-inline me-n2 my-1">
                             <li><Button variant="white" size="md" className="btn-icon btn-pill"><SendFill /></Button></li>

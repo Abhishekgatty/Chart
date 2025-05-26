@@ -155,6 +155,9 @@ const Login = () => {
               <Button as="a" href="/register" variant="link">
                 Register
               </Button>
+              <Button as="a" href="/" variant="link">
+                Home
+              </Button>
             </p>
           </div>
         </Col>
