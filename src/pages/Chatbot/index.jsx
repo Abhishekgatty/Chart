@@ -734,17 +734,768 @@
 
 
 
+// import React, { useState, useEffect, useRef } from 'react';
+// import Layout from '../../layout/main';
+// import {
+//   ChatQuoteFill,
+//   ChatRightTextFill,
+//   PersonUp,
+//   PlusLg,
+//   SendFill,
+//   Trash,
+//   XLg,
+//   Mic,
+// } from 'react-bootstrap-icons';
+// import { Button, Row, Col } from 'react-bootstrap';
+// import SimpleBar from 'simplebar-react';
+// import { Media } from '../../components';
+// import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+// import Markdown from 'react-markdown';
+// import classNames from 'classnames';
+// import axios from 'axios';
+
+// // These are your custom hooks / API functions, assumed to be implemented elsewhere
+// import { useUserData } from '../../store/user';
+// import { getArchivedSessions, getConversations } from '../../api/conversations';
+// import { getProfilePic } from '../../api/user';
+// import { getSubscriptionDetails } from '../../api/subscriptions';
+
+// function Chatbot() {
+//   const navigate = useNavigate();
+//   const [searchParams] = useSearchParams();
+
+//   // User data state and loading/error
+//   const { user, loading: userLoading, error: userError } = useUserData();
+
+//   // Other state
+//   const [archivedSessions, setArchivedSessions] = useState([]);
+//   const [currentPlan, setCurrentPlan] = useState('Free');
+//   const [error, setError] = useState(null);
+//   const [loading, setLoading] = useState(false);
+//   const [selectedConversation, setSelectedConversation] = useState(null);
+//   const [inputMessage, setInputMessage] = useState('');
+//   const [isBotTyping, setIsBotTyping] = useState(false);
+//   const [showMain, setShowMain] = useState(true);
+//   const [profilePic, setProfilePic] = useState(null);
+//   const [fullResponse, setFullResponse] = useState(false);
+//   const [displayedResponse, setDisplayedResponse] = useState('');
+//   const [isArchivedView, setIsArchivedView] = useState(false);
+//   const [suggestionTopic, setSuggestionTopic] = useState(null);
+//   const [suggestedQuestions, setSuggestedQuestions] = useState(null);
+
+//   const chatWindow = useRef(null);
+
+//   // Fetch archived sessions and profile pic on mount
+//   useEffect(() => {
+//     if (!user) return;
+
+//     async function fetchData() {
+//       try {
+//         setLoading(true);
+
+//         const archived = await getArchivedSessions(user.id);
+//         setArchivedSessions(archived);
+
+//         const profile = await getProfilePic(user.id);
+//         setProfilePic(profile);
+
+//         const subscription = await getSubscriptionDetails(user.id);
+//         setCurrentPlan(subscription.planName || 'Free');
+
+//         setLoading(false);
+//       } catch (err) {
+//         setError('Failed to load data.');
+//         setLoading(false);
+//       }
+//     }
+
+//     fetchData();
+//   }, [user]);
+
+//   // Redirect to login if no user (not logged in)
+//   useEffect(() => {
+//     if (!user && !userLoading) {
+//       navigate('/login');
+//     }
+//   }, [user, userLoading, navigate]);
+
+//   // Logout handler
+//   const handleLogout = () => {
+//     localStorage.removeItem('authToken'); // Adjust if you store token differently
+//     navigate('/login');
+//   };
+
+//   // Initialize new conversation handler (placeholder)
+//   const initializeNewConversation = () => {
+//     setSelectedConversation({ messages: [] });
+//     setIsArchivedView(false);
+//   };
+
+//   // Clear archive handler (placeholder)
+//   const clearArchive = () => {
+//     setArchivedSessions([]);
+//   };
+
+//   // Send message handler (placeholder)
+//   const handleSendMessage = () => {
+//     if (!inputMessage.trim()) return;
+
+//     const newMsg = { role: 'user', content: inputMessage.trim() };
+
+//     setSelectedConversation((prev) => ({
+//       ...prev,
+//       messages: prev?.messages ? [...prev.messages, newMsg] : [newMsg],
+//     }));
+//     setInputMessage('');
+
+//     // Simulate bot typing and response
+//     setIsBotTyping(true);
+//     setTimeout(() => {
+//       const botReply = { role: 'bot', content: `You said: ${newMsg.content}` };
+//       setSelectedConversation((prev) => ({
+//         ...prev,
+//         messages: [...prev.messages, botReply],
+//       }));
+//       setIsBotTyping(false);
+//     }, 1500);
+//   };
+
+//   // Get button text based on plan
+//   const getPlanButtonText = () => (currentPlan === 'Free' ? 'Upgrade Now' : 'Manage Plan');
+
+//   return (
+//     <Layout title="Chatbot" content="tyn-content-full-height tyn-chatbot tyn-chatbot-page has-aside-base">
+//       {/* Logout Button */}
+//       <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000 }}>
+//         <Button variant="outline-danger" onClick={handleLogout}>
+//           Logout
+//         </Button>
+//       </div>
+
+//       {userLoading ? (
+//         <div className="d-flex justify-content-center align-items-center h-100 w-80">
+//           <div className="text-center p-4">Loading user data...</div>
+//         </div>
+//       ) : userError || !user ? (
+//         <div className="d-flex justify-content-center align-items-center h-100">
+//           <div className="alert alert-danger" role="alert">
+//             <h4 className="alert-heading">Error!</h4>
+//             <p>{userError || 'User data not available. Please try logging in again.'}</p>
+//             <hr />
+//             <p className="mb-0">
+//               <Link to="/login" className="btn btn-outline-danger">
+//                 Go to Login
+//               </Link>
+//             </p>
+//           </div>
+//         </div>
+//       ) : (
+//         <>
+//           <div className="tyn-aside tyn-aside-base">
+//             <div className="tyn-aside-head">
+//               <div className="tyn-aside-head-text">
+//                 <h3 className="tyn-aside-title tyn-title">Chat Archive</h3>
+//               </div>
+//               <div className="tyn-aside-head-tools">
+//                 <ul className="tyn-list-inline gap gap-3 p-2">
+//                   <li>
+//                     <Button variant="light" size="md" className="btn-icon btn-pill" onClick={initializeNewConversation}>
+//                       <PlusLg />
+//                     </Button>
+//                   </li>
+//                 </ul>
+//               </div>
+//             </div>
+
+//             <SimpleBar className="tyn-aside-body">
+//               <ul className="tyn-aside-list">
+//                 {archivedSessions.map((item, index) => {
+//                   const formattedDate = new Date(item.timestamp).toLocaleDateString('en-GB');
+//                   const formattedDateDashed = formattedDate.replaceAll('/', '-');
+
+//                   return (
+//                     <li key={index} className="tyn-aside-item tyn-aside-item-bubbly">
+//                       <Media.Group>
+//                         <Media size="sm">
+//                           <ChatQuoteFill />
+//                         </Media>
+//                         <Media.Col>
+//                           <div className="d-flex justify-content-around align-items-center">
+//                             <span className="content">{formattedDateDashed}</span>
+//                             <span className="small text-muted">{item.conversationCount} msg</span>
+//                           </div>
+//                           <div style={{ display: 'none' }}>{item.sessionId}</div>
+//                           <Media.Option className="tyn-aside-item-option d-flex align-items-start ">
+//                             <ul className="tyn-media-option-list">
+//                               <li>
+//                                 <Button variant="light" size="md" className="d-flex align-items-center btn-icon btn-pill ">
+//                                   <Trash />
+//                                 </Button>
+//                               </li>
+//                             </ul>
+//                           </Media.Option>
+//                         </Media.Col>
+//                       </Media.Group>
+//                     </li>
+//                   );
+//                 })}
+//               </ul>
+//             </SimpleBar>
+
+//             <div className="tyn-aside-foot">
+//               <div className="w-100">
+//                 <Row as="ul" className="gx-3">
+//                   <Col key="upgrade-btn" as="li" xs="6">
+//                     <Link
+//                       to="/pricing"
+//                       className={`btn ${currentPlan === 'Free' ? 'btn-primary' : 'btn-outline-primary'} btn-lg w-100 flex-column py-2 pt-3`}
+//                     >
+//                       {getPlanButtonText()}
+//                     </Link>
+//                   </Col>
+//                   <Col key="clear-archive-btn" as="li" xs="6">
+//                     <Button variant="light" size="lg" className="w-100 flex-column py-2 pt-3 " onClick={clearArchive} disabled>
+//                       <Trash />
+//                       <span className="small text-nowrap mt-n1">Clear Archive</span>
+//                     </Button>
+//                   </Col>
+//                 </Row>
+//               </div>
+//             </div>
+//           </div>
+
+//           <div
+//             className={classNames({
+//               'tyn-main tyn-main-boxed': true,
+//               'main-shown': showMain,
+//             })}
+//             style={{ maxWidth: '1200px', margin: '0 auto' }}
+//           >
+//             {error && (
+//               <div className="alert alert-danger m-4" role="alert">
+//                 <h4 className="alert-heading">Error</h4>
+//                 <p>{error}</p>
+//               </div>
+//             )}
+//             <ul className="tyn-list-inline d-md-none translate-middle-x position-absolute start-50 z-1">
+//               <li key="close-btn">
+//                 <Button variant="white" className="btn-icon btn-pill" onClick={() => setShowMain(false)}>
+//                   <XLg />
+//                 </Button>
+//               </li>
+//             </ul>
+
+//             <SimpleBar ref={chatWindow} className="tyn-chat-body m-4 rounded-3">
+//               <div className="container px-0">
+//                 {loading ? (
+//                   <div className="d-flex justify-content-center align-items-center p-5">
+//                     <div className="spinner-border text-primary" role="status">
+//                       <span className="visually-hidden">Loading...</span>
+//                     </div>
+//                   </div>
+//                 ) : !selectedConversation?.messages || selectedConversation.messages.length === 0 ? (
+//                   <div className="tyn-qa">
+//                     <div className="tyn-qa-item">
+//                       <div className="tyn-qa-avatar">
+//                         <Media size="md">
+//                           <img src="images/avatar/bot-1.jpg" alt="Bot" />
+//                         </Media>
+//                       </div>
+//                       <div className="tyn-qa-message tyn-text-block">
+//                         <Markdown>{isArchivedView ? 'No messages in this archived conversation' : 'Start a new conversation'}</Markdown>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 ) : (
+//                   <div className="tyn-qa">
+//                     {selectedConversation.messages.map((item, index) => (
+//                       <div
+//                         key={index}
+//                         className={classNames('tyn-qa-item', {
+//                           'd-flex flex-row': item.role === 'bot',
+//                           'd-flex flex-row row-reverse': item.role === 'user',
+//                         })}
+//                       >
+//                         {item.role === 'bot' && (
+//                           <div className="tyn-qa-avatar me-2">
+//                             <Media size="md">
+//                               <img src="images/avatar/bot-1.jpg" alt="Bot" />
+//                             </Media>
+//                           </div>
+//                         )}
+//                         <div
+//                           className={classNames('tyn-qa-message tyn-text-block', {
+//                             'text-start': item.role === 'bot',
+//                             'text-end': item.role === 'user',
+//                           })}
+//                         >
+//                           <Markdown>
+//                             {item.role === 'bot' && index === selectedConversation.messages.length - 1 && fullResponse
+//                               ? displayedResponse
+//                               : item.content}
+//                           </Markdown>
+//                           {item.role === 'bot' &&
+//                             index === selectedConversation.messages.length - 1 &&
+//                             !fullResponse &&
+//                             (suggestionTopic || suggestedQuestions) && (
+//                               <div className="mt-2">
+//                                 <Button variant="primary" size="sm" className="me-2" onClick={() => handleSuggestionResponse('yes')}>
+//                                   Yes
+//                                 </Button>
+//                                 <Button variant="secondary" size="sm" onClick={() => handleSuggestionResponse('no')}>
+//                                   No
+//                                 </Button>
+//                               </div>
+//                             )}
+//                         </div>
+//                         {item.role === 'user' && (
+//                           <div className="tyn-qa-avatar ms-2">
+//                             <Media size="md">
+//                               <img src={profilePic || '/images/avatar/1.jpg'} alt="User" />
+//                             </Media>
+//                           </div>
+//                         )}
+//                       </div>
+//                     ))}
+//                     {isBotTyping && (
+//                       <div className="tyn-qa-item d-flex flex-row">
+//                         <div className="tyn-qa-avatar me-2">
+//                           <Media size="md">
+//                             <img src="images/avatar/bot-1.jpg" alt="Bot" />
+//                           </Media>
+//                         </div>
+//                         <div className="tyn-qa-message tyn-text-block text-start">
+//                           <span className="typing-animation">
+//                             <span className="typing-dot"></span>
+//                             <span className="typing-dot"></span>
+//                             <span className="typing-dot"></span>
+//                           </span>
+//                         </div>
+//                       </div>
+//                     )}
+//                   </div>
+//                 )}
+//               </div>
+//             </SimpleBar>
+
+//             {/* input section */}
+//             <div className="tyn-chat-form border-0 ps-3 pe-4 pt-3 pb-3 rounded-bottom shadow-sm">
+//               <Row className="align-items-center">
+//                 <Col xs="auto" className="d-flex align-items-center pe-2">
+//                   <Button variant="link" size="lg">
+//                     <Mic />
+//                   </Button>
+//                 </Col>
+//                 <Col>
+//                   <input
+//                     type="text"
+//                     className="form-control"
+//                     placeholder="Type your message..."
+//                     value={inputMessage}
+//                     onChange={(e) => setInputMessage(e.target.value)}
+//                     onKeyDown={(e) => {
+//                       if (e.key === 'Enter') {
+//                         e.preventDefault();
+//                         handleSendMessage();
+//                       }
+//                     }}
+//                     disabled={isBotTyping}
+//                   />
+//                 </Col>
+//                 <Col xs="auto">
+//                   <Button variant="primary" onClick={handleSendMessage} disabled={isBotTyping}>
+//                     <SendFill />
+//                   </Button>
+//                 </Col>
+//               </Row>
+//             </div>
+//           </div>
+//         </>
+//       )}
+//     </Layout>
+//   );
+// }
+
+// export default Chatbot;
+
+
+
+
+// import React, { useState, useEffect, useRef } from 'react';
+// import Layout from '../../layout/main';
+// import {
+//   ChatQuoteFill,
+//   ChatRightTextFill,
+//   PersonUp,
+//   PlusLg,
+//   SendFill,
+//   Trash,
+//   XLg,
+//   Mic,
+// } from 'react-bootstrap-icons';
+// import { Button, Row, Col } from 'react-bootstrap';
+// import SimpleBar from 'simplebar-react';
+// import { Media } from '../../components';
+// import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+// import Markdown from 'react-markdown';
+// import classNames from 'classnames';
+// import axios from 'axios';
+
+// // Your custom hooks / API functions (assumed implemented elsewhere)
+// import { useUserData } from '../../store/user';
+// import { getArchivedSessions, getConversations } from '../../api/conversations';
+// import { getProfilePic } from '../../api/user';
+// import { getSubscriptionDetails } from '../../api/subscriptions';
+
+// function Chatbot() {
+//   const navigate = useNavigate();
+//   const [searchParams] = useSearchParams();
+
+//   // User data state and loading/error
+//   const { user, loading: userLoading, error: userError } = useUserData();
+
+//   // Other state
+//   const [archivedSessions, setArchivedSessions] = useState([]);
+//   const [currentPlan, setCurrentPlan] = useState('Free');
+//   const [error, setError] = useState(null);
+//   const [loading, setLoading] = useState(false);
+//   const [selectedConversation, setSelectedConversation] = useState(null);
+//   const [inputMessage, setInputMessage] = useState('');
+//   const [isBotTyping, setIsBotTyping] = useState(false);
+//   const [showMain, setShowMain] = useState(true);
+//   const [profilePic, setProfilePic] = useState(null);
+//   const [fullResponse, setFullResponse] = useState(false);
+//   const [displayedResponse, setDisplayedResponse] = useState('');
+//   const [isArchivedView, setIsArchivedView] = useState(false);
+//   const [suggestionTopic, setSuggestionTopic] = useState(null);
+//   const [suggestedQuestions, setSuggestedQuestions] = useState(null);
+
+//   const chatWindow = useRef(null);
+
+//   // Get sessionId from URL query params
+//   const sessionId = searchParams.get('sessionId');
+
+//   // Fetch archived sessions and profile pic on mount (and when user changes)
+//   useEffect(() => {
+//     if (!user) return;
+
+//     async function fetchData() {
+//       try {
+//         setLoading(true);
+
+//         const archived = await getArchivedSessions(user.id);
+//         setArchivedSessions(archived);
+
+//         const profile = await getProfilePic(user.id);
+//         setProfilePic(profile);
+
+//         const subscription = await getSubscriptionDetails(user.id);
+//         setCurrentPlan(subscription.planName || 'Free');
+
+//         setLoading(false);
+//       } catch (err) {
+//         setError('Failed to load data.');
+//         setLoading(false);
+//       }
+//     }
+
+//     fetchData();
+//   }, [user]);
+
+//   // Auto-load conversation if sessionId is present and archivedSessions are loaded
+//   useEffect(() => {
+//     if (!archivedSessions.length || !sessionId) return;
+
+//     const foundSession = archivedSessions.find(session => session.sessionId === sessionId);
+//     if (foundSession) {
+//       setSelectedConversation(foundSession);
+//       setIsArchivedView(true);
+//       setShowMain(true);
+//     } else {
+//       setError('Session not found');
+//     }
+//   }, [archivedSessions, sessionId]);
+
+//   // Redirect to login if no user (not logged in)
+//   useEffect(() => {
+//     if (!user && !userLoading) {
+//       navigate('/login');
+//     }
+//   }, [user, userLoading, navigate]);
+
+//   // Logout handler
+//   const handleLogout = () => {
+//     localStorage.removeItem('authToken'); // Adjust if you store token differently
+//     navigate('/login');
+//   };
+
+//   // Initialize new conversation handler (placeholder)
+//   const initializeNewConversation = () => {
+//     setSelectedConversation({ messages: [] });
+//     setIsArchivedView(false);
+//   };
+
+//   // Clear archive handler (placeholder)
+//   const clearArchive = () => {
+//     setArchivedSessions([]);
+//   };
+
+//   // Send message handler (placeholder)
+//   const handleSendMessage = () => {
+//     if (!inputMessage.trim()) return;
+
+//     const newMsg = { role: 'user', content: inputMessage.trim() };
+
+//     setSelectedConversation((prev) => ({
+//       ...prev,
+//       messages: prev?.messages ? [...prev.messages, newMsg] : [newMsg],
+//     }));
+//     setInputMessage('');
+
+//     // Simulate bot typing and response
+//     setIsBotTyping(true);
+//     setTimeout(() => {
+//       const botReply = { role: 'bot', content: `You said: ${newMsg.content}` };
+//       setSelectedConversation((prev) => ({
+//         ...prev,
+//         messages: [...prev.messages, botReply],
+//       }));
+//       setIsBotTyping(false);
+//     }, 1500);
+//   };
+
+//   // Get button text based on plan
+//   const getPlanButtonText = () => (currentPlan === 'Free' ? 'Upgrade Now' : 'Manage Plan');
+
+//   return (
+//     <Layout title="Chatbot" content="tyn-content-full-height tyn-chatbot tyn-chatbot-page has-aside-base">
+//       {/* Logout Button */}
+//       <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 1000 }}>
+//         <Button variant="outline-danger" onClick={handleLogout}>
+//           Logout
+//         </Button>
+//       </div>
+
+//       {userLoading ? (
+//         <div className="d-flex justify-content-center align-items-center h-100 w-80">
+//           <div className="text-center p-4">Loading user data...</div>
+//         </div>
+//       ) : userError || !user ? (
+//         <div className="d-flex justify-content-center align-items-center h-100">
+//           <div className="alert alert-danger" role="alert">
+//             <h4 className="alert-heading">Error!</h4>
+//             <p>{userError || 'User data not available. Please try logging in again.'}</p>
+//             <hr />
+//             <p className="mb-0">
+//               <Link to="/login" className="btn btn-outline-danger">
+//                 Go to Login
+//               </Link>
+//             </p>
+//           </div>
+//         </div>
+//       ) : (
+//         <>
+//           <div className="tyn-aside tyn-aside-base">
+//             <div className="tyn-aside-head">
+//               <div className="tyn-aside-head-text">
+//                 <h3 className="tyn-aside-title tyn-title">Chat Archive</h3>
+//               </div>
+//               <div className="tyn-aside-head-tools">
+//                 <ul className="tyn-list-inline gap gap-3 p-2">
+//                   <li>
+//                     <Button variant="light" size="md" className="btn-icon btn-pill" onClick={initializeNewConversation}>
+//                       <PlusLg />
+//                     </Button>
+//                   </li>
+//                 </ul>
+//               </div>
+//             </div>
+
+//             <SimpleBar className="tyn-aside-body">
+//               <ul className="tyn-aside-list">
+//                 {archivedSessions.map((item, index) => {
+//                   const formattedDate = new Date(item.timestamp).toLocaleDateString('en-GB');
+//                   const formattedDateDashed = formattedDate.replaceAll('/', '-');
+
+//                   return (
+//                     <li key={index} className="tyn-aside-item tyn-aside-item-bubbly">
+//                       <Media.Group>
+//                         <Media size="sm">
+//                           <ChatQuoteFill />
+//                         </Media>
+//                         <Media.Col>
+//                           <div className="d-flex justify-content-around align-items-center">
+//                             <span className="content">{formattedDateDashed}</span>
+//                             <span className="small text-muted">{item.conversationCount} msg</span>
+//                           </div>
+//                           <div style={{ display: 'none' }}>{item.sessionId}</div>
+//                           <Media.Option className="tyn-aside-item-option d-flex align-items-start ">
+//                             <ul className="tyn-media-option-list">
+//                               <li>
+//                                 <Button variant="light" size="md" className="d-flex align-items-center btn-icon btn-pill ">
+//                                   <Trash />
+//                                 </Button>
+//                               </li>
+//                             </ul>
+//                           </Media.Option>
+//                         </Media.Col>
+//                       </Media.Group>
+//                     </li>
+//                   );
+//                 })}
+//               </ul>
+//             </SimpleBar>
+
+//             <div className="tyn-aside-foot">
+//               <div className="w-100">
+//                 <Row as="ul" className="gx-3">
+//                   <Col key="upgrade-btn" as="li" xs="6">
+//                     <Link
+//                       to="/pricing"
+//                       className={`btn ${currentPlan === 'Free' ? 'btn-primary' : 'btn-outline-primary'} btn-lg w-100 flex-column py-2 pt-3`}
+//                     >
+//                       {getPlanButtonText()}
+//                     </Link>
+//                   </Col>
+//                   <Col key="clear-archive-btn" as="li" xs="6">
+//                     <Button variant="light" size="lg" className="w-100 flex-column py-2 pt-3 " onClick={clearArchive} disabled>
+//                       <Trash />
+//                       <span className="small text-nowrap mt-n1">Clear Archive</span>
+//                     </Button>
+//                   </Col>
+//                 </Row>
+//               </div>
+//             </div>
+//           </div>
+
+//           <div
+//             className={classNames({
+//               'tyn-main tyn-main-boxed': true,
+//               'main-shown': showMain,
+//             })}
+//             style={{ maxWidth: '1200px', margin: '0 auto' }}
+//           >
+//             {error && (
+//               <div className="alert alert-danger m-4" role="alert">
+//                 <h4 className="alert-heading">Error</h4>
+//                 <p>{error}</p>
+//               </div>
+//             )}
+//             <ul className="tyn-list-inline d-md-none translate-middle-x position-absolute start-50 z-1">
+//               <li key="close-btn">
+//                 <Button variant="white" className="btn-icon btn-pill" onClick={() => setShowMain(false)}>
+//                   <XLg />
+//                 </Button>
+//               </li>
+//             </ul>
+
+//             <SimpleBar ref={chatWindow} className="tyn-chat-body m-4 rounded-3">
+//               <div className="container px-0">
+//                 {loading ? (
+//                   <div className="d-flex justify-content-center align-items-center p-5">
+//                     <div className="spinner-border text-primary" role="status">
+//                       <span className="visually-hidden">Loading...</span>
+//                     </div>
+//                   </div>
+//                 ) : !selectedConversation?.messages || selectedConversation.messages.length === 0 ? (
+//                   <div className="tyn-qa">
+//                     <div className="tyn-qa-item">
+//                       <div className="tyn-qa-avatar">
+//                         <Media size="md">
+//                           <img src="images/avatar/bot-1.jpg" alt="Bot" />
+//                         </Media>
+//                       </div>
+//                       <div className="tyn-qa-message tyn-text-block">
+//                         <Markdown>{isArchivedView ? 'No messages in this archived conversation' : 'Start a new conversation'}</Markdown>
+//                       </div>
+//                     </div>
+//                   </div>
+//                 ) : (
+//                   <>
+//                     {selectedConversation.messages.map((msg, index) => (
+//                       <div
+//                         key={index}
+//                         className={classNames('tyn-qa-item', {
+//                           'tyn-qa-me': msg.role === 'user',
+//                           'tyn-qa-ai': msg.role === 'bot',
+//                         })}
+//                       >
+//                         <div className="tyn-qa-avatar">
+//                           <Media size="md">
+//                             {msg.role === 'user' ? (
+//                               profilePic ? (
+//                                 <img src={profilePic} alt="User" />
+//                               ) : (
+//                                 <PersonUp />
+//                               )
+//                             ) : (
+//                               <img src="images/avatar/bot-1.jpg" alt="Bot" />
+//                             )}
+//                           </Media>
+//                         </div>
+//                         <div className="tyn-qa-message tyn-text-block">
+//                           <Markdown>{msg.content}</Markdown>
+//                         </div>
+//                       </div>
+//                     ))}
+
+//                     {isBotTyping && (
+//                       <div className="tyn-qa-item tyn-qa-ai">
+//                         <div className="tyn-qa-avatar">
+//                           <Media size="md">
+//                             <img src="images/avatar/bot-1.jpg" alt="Bot" />
+//                           </Media>
+//                         </div>
+//                         <div className="tyn-qa-message tyn-text-block">Typing...</div>
+//                       </div>
+//                     )}
+//                   </>
+//                 )}
+//               </div>
+//             </SimpleBar>
+
+//             {/* Input box */}
+//             <div className="tyn-chat-footer m-4 rounded-3 border border-muted">
+//               <form
+//                 onSubmit={(e) => {
+//                   e.preventDefault();
+//                   handleSendMessage();
+//                 }}
+//                 className="d-flex gap-2 align-items-center"
+//               >
+//                 <input
+//                   type="text"
+//                   placeholder="Type your message..."
+//                   className="form-control"
+//                   value={inputMessage}
+//                   onChange={(e) => setInputMessage(e.target.value)}
+//                   disabled={isBotTyping}
+//                 />
+//                 <Button type="submit" variant="primary" disabled={isBotTyping || !inputMessage.trim()}>
+//                   <SendFill />
+//                 </Button>
+//               </form>
+//             </div>
+//           </div>
+//         </>
+//       )}
+//     </Layout>
+//   );
+// }
+
+// export default Chatbot;
+
+
+
 import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../../layout/main';
 import {
   ChatQuoteFill,
-  ChatRightTextFill,
   PersonUp,
   PlusLg,
   SendFill,
   Trash,
   XLg,
-  Mic,
 } from 'react-bootstrap-icons';
 import { Button, Row, Col } from 'react-bootstrap';
 import SimpleBar from 'simplebar-react';
@@ -752,11 +1503,10 @@ import { Media } from '../../components';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Markdown from 'react-markdown';
 import classNames from 'classnames';
-import axios from 'axios';
 
-// These are your custom hooks / API functions, assumed to be implemented elsewhere
+// Your custom hooks / API functions (assumed implemented elsewhere)
 import { useUserData } from '../../store/user';
-import { getArchivedSessions, getConversations } from '../../api/conversations';
+import { getArchivedSessions } from '../../api/conversations';
 import { getProfilePic } from '../../api/user';
 import { getSubscriptionDetails } from '../../api/subscriptions';
 
@@ -775,17 +1525,16 @@ function Chatbot() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [inputMessage, setInputMessage] = useState('');
   const [isBotTyping, setIsBotTyping] = useState(false);
-  const [showMain, setShowMain] = useState(true);
+  const [showMain, setShowMain] = useState(false);
   const [profilePic, setProfilePic] = useState(null);
-  const [fullResponse, setFullResponse] = useState(false);
-  const [displayedResponse, setDisplayedResponse] = useState('');
   const [isArchivedView, setIsArchivedView] = useState(false);
-  const [suggestionTopic, setSuggestionTopic] = useState(null);
-  const [suggestedQuestions, setSuggestedQuestions] = useState(null);
 
   const chatWindow = useRef(null);
 
-  // Fetch archived sessions and profile pic on mount
+  // Get sessionId from URL query params
+  const sessionId = searchParams.get('sessionId');
+
+  // Fetch archived sessions and profile pic on mount (and when user changes)
   useEffect(() => {
     if (!user) return;
 
@@ -812,6 +1561,32 @@ function Chatbot() {
     fetchData();
   }, [user]);
 
+  // Auto-load conversation ONLY if sessionId exists and is found in archivedSessions
+  useEffect(() => {
+    if (!archivedSessions.length) return;
+
+    if (!sessionId) {
+      // No sessionId - do not open any conversation and hide main chat
+      setSelectedConversation(null);
+      setIsArchivedView(false);
+      setShowMain(false);
+      setError(null);
+      return;
+    }
+
+    const foundSession = archivedSessions.find(session => session.sessionId === sessionId);
+    if (foundSession) {
+      setSelectedConversation(foundSession);
+      setIsArchivedView(true);
+      setShowMain(true);
+      setError(null);
+    } else {
+      setError('Session not found');
+      setSelectedConversation(null);
+      setShowMain(false);
+    }
+  }, [archivedSessions, sessionId]);
+
   // Redirect to login if no user (not logged in)
   useEffect(() => {
     if (!user && !userLoading) {
@@ -825,18 +1600,20 @@ function Chatbot() {
     navigate('/login');
   };
 
-  // Initialize new conversation handler (placeholder)
+  // Initialize new conversation handler
   const initializeNewConversation = () => {
     setSelectedConversation({ messages: [] });
     setIsArchivedView(false);
+    setShowMain(true);
+    setError(null);
   };
 
-  // Clear archive handler (placeholder)
+  // Clear archive handler (disabled)
   const clearArchive = () => {
     setArchivedSessions([]);
   };
 
-  // Send message handler (placeholder)
+  // Send message handler
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
 
@@ -964,152 +1741,117 @@ function Chatbot() {
             </div>
           </div>
 
-          <div
-            className={classNames({
-              'tyn-main tyn-main-boxed': true,
-              'main-shown': showMain,
-            })}
-            style={{ maxWidth: '1200px', margin: '0 auto' }}
-          >
-            {error && (
-              <div className="alert alert-danger m-4" role="alert">
-                <h4 className="alert-heading">Error</h4>
-                <p>{error}</p>
-              </div>
-            )}
-            <ul className="tyn-list-inline d-md-none translate-middle-x position-absolute start-50 z-1">
-              <li key="close-btn">
-                <Button variant="white" className="btn-icon btn-pill" onClick={() => setShowMain(false)}>
-                  <XLg />
-                </Button>
-              </li>
-            </ul>
+          {showMain && selectedConversation && (
+            <div
+              className={classNames({
+                'tyn-main tyn-main-boxed': true,
+                'main-shown': showMain,
+              })}
+              style={{ maxWidth: '1200px', margin: '0 auto' }}
+            >
+              {error && (
+                <div className="alert alert-danger m-4" role="alert">
+                  <h4 className="alert-heading">Error</h4>
+                  <p>{error}</p>
+                </div>
+              )}
+              <ul className="tyn-list-inline d-md-none translate-middle-x position-absolute start-50 z-1">
+                <li key="close-btn">
+                  <Button variant="white" className="btn-icon btn-pill" onClick={() => setShowMain(false)}>
+                    <XLg />
+                  </Button>
+                </li>
+              </ul>
 
-            <SimpleBar ref={chatWindow} className="tyn-chat-body m-4 rounded-3">
-              <div className="container px-0">
-                {loading ? (
-                  <div className="d-flex justify-content-center align-items-center p-5">
-                    <div className="spinner-border text-primary" role="status">
-                      <span className="visually-hidden">Loading...</span>
-                    </div>
-                  </div>
-                ) : !selectedConversation?.messages || selectedConversation.messages.length === 0 ? (
-                  <div className="tyn-qa">
-                    <div className="tyn-qa-item">
-                      <div className="tyn-qa-avatar">
-                        <Media size="md">
-                          <img src="images/avatar/bot-1.jpg" alt="Bot" />
-                        </Media>
-                      </div>
-                      <div className="tyn-qa-message tyn-text-block">
-                        <Markdown>{isArchivedView ? 'No messages in this archived conversation' : 'Start a new conversation'}</Markdown>
+              <SimpleBar ref={chatWindow} className="tyn-chat-body m-4 rounded-3">
+                <div className="container px-0">
+                  {loading ? (
+                    <div className="d-flex justify-content-center align-items-center p-5">
+                      <div className="spinner-border text-primary" role="status">
+                        <span className="visually-hidden">Loading...</span>
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="tyn-qa">
-                    {selectedConversation.messages.map((item, index) => (
-                      <div
-                        key={index}
-                        className={classNames('tyn-qa-item', {
-                          'd-flex flex-row': item.role === 'bot',
-                          'd-flex flex-row row-reverse': item.role === 'user',
-                        })}
-                      >
-                        {item.role === 'bot' && (
-                          <div className="tyn-qa-avatar me-2">
-                            <Media size="md">
-                              <img src="images/avatar/bot-1.jpg" alt="Bot" />
-                            </Media>
-                          </div>
-                        )}
-                        <div
-                          className={classNames('tyn-qa-message tyn-text-block', {
-                            'text-start': item.role === 'bot',
-                            'text-end': item.role === 'user',
-                          })}
-                        >
-                          <Markdown>
-                            {item.role === 'bot' && index === selectedConversation.messages.length - 1 && fullResponse
-                              ? displayedResponse
-                              : item.content}
-                          </Markdown>
-                          {item.role === 'bot' &&
-                            index === selectedConversation.messages.length - 1 &&
-                            !fullResponse &&
-                            (suggestionTopic || suggestedQuestions) && (
-                              <div className="mt-2">
-                                <Button variant="primary" size="sm" className="me-2" onClick={() => handleSuggestionResponse('yes')}>
-                                  Yes
-                                </Button>
-                                <Button variant="secondary" size="sm" onClick={() => handleSuggestionResponse('no')}>
-                                  No
-                                </Button>
-                              </div>
-                            )}
-                        </div>
-                        {item.role === 'user' && (
-                          <div className="tyn-qa-avatar ms-2">
-                            <Media size="md">
-                              <img src={profilePic || '/images/avatar/1.jpg'} alt="User" />
-                            </Media>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                    {isBotTyping && (
-                      <div className="tyn-qa-item d-flex flex-row">
-                        <div className="tyn-qa-avatar me-2">
+                  ) : !selectedConversation?.messages || selectedConversation.messages.length === 0 ? (
+                    <div className="tyn-qa">
+                      <div className="tyn-qa-item">
+                        <div className="tyn-qa-avatar">
                           <Media size="md">
                             <img src="images/avatar/bot-1.jpg" alt="Bot" />
                           </Media>
                         </div>
-                        <div className="tyn-qa-message tyn-text-block text-start">
-                          <span className="typing-animation">
-                            <span className="typing-dot"></span>
-                            <span className="typing-dot"></span>
-                            <span className="typing-dot"></span>
-                          </span>
+                        <div className="tyn-qa-message tyn-text-block">
+                          <Markdown>{isArchivedView ? 'No messages in this archived conversation' : 'Start a new conversation'}</Markdown>
                         </div>
                       </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </SimpleBar>
+                    </div>
+                  ) : (
+                    <>
+                      {selectedConversation.messages.map((msg, index) => (
+                        <div
+                          key={index}
+                          className={classNames('tyn-qa-item', {
+                            'tyn-qa-me': msg.role === 'user',
+                            'tyn-qa-ai': msg.role === 'bot',
+                          })}
+                        >
+                          <div className="tyn-qa-avatar">
+                            <Media size="md">
+                              {msg.role === 'user' ? (
+                                profilePic ? (
+                                  <img src={profilePic} alt="User" />
+                                ) : (
+                                  <PersonUp />
+                                )
+                              ) : (
+                                <img src="images/avatar/bot-1.jpg" alt="Bot" />
+                              )}
+                            </Media>
+                          </div>
+                          <div className="tyn-qa-message tyn-text-block">
+                            <Markdown>{msg.content}</Markdown>
+                          </div>
+                        </div>
+                      ))}
 
-            {/* input section */}
-            <div className="tyn-chat-form border-0 ps-3 pe-4 pt-3 pb-3 rounded-bottom shadow-sm">
-              <Row className="align-items-center">
-                <Col xs="auto" className="d-flex align-items-center pe-2">
-                  <Button variant="link" size="lg">
-                    <Mic />
-                  </Button>
-                </Col>
-                <Col>
+                      {isBotTyping && (
+                        <div className="tyn-qa-item tyn-qa-ai">
+                          <div className="tyn-qa-avatar">
+                            <Media size="md">
+                              <img src="images/avatar/bot-1.jpg" alt="Bot" />
+                            </Media>
+                          </div>
+                          <div className="tyn-qa-message tyn-text-block">Typing...</div>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </SimpleBar>
+
+              {/* Input box */}
+              <div className="tyn-chat-footer m-4 rounded-3 border border-muted">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
+                  className="d-flex gap-2 align-items-center"
+                >
                   <input
                     type="text"
-                    className="form-control"
                     placeholder="Type your message..."
+                    className="form-control"
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
                     disabled={isBotTyping}
                   />
-                </Col>
-                <Col xs="auto">
-                  <Button variant="primary" onClick={handleSendMessage} disabled={isBotTyping}>
+                  <Button type="submit" variant="primary" disabled={isBotTyping || !inputMessage.trim()}>
                     <SendFill />
                   </Button>
-                </Col>
-              </Row>
+                </form>
+              </div>
             </div>
-          </div>
+          )}
         </>
       )}
     </Layout>

@@ -1,63 +1,35 @@
-[
-  {
-    "id": 1,
-    "question": "What is the function of the heart?",
-    "category": "Physiology",
-    "type": "text"
-  },
-  {
-    "id": 2,
-    "question": "What is the main cause of diabetes?",
-    "category": "Endocrinology",
-    "type": "text"
-  },
-  {
-    "id": 3,
-    "question": "What is the normal body temperature for a healthy adult?",
-    "category": "General Health",
-    "type": "text"
-  },
-  {
-    "id": 4,
-    "question": "Which organ is responsible for producing insulin?",
-    "category": "Endocrinology",
-    "type": "text"
-  },
-  {
-    "id": 5,
-    "question": "What is hypertension?",
-    "category": "Cardiology",
-    "type": "text"
-  },
-  {
-    "id": 6,
-    "question": "What is the primary function of white blood cells?",
-    "category": "Physiology",
-    "type": "text"
-  },
-  {
-    "id": 7,
-    "question": "Which vitamin is essential for bone health?",
-    "category": "Nutrition",
-    "type": "text"
-  },
-  {
-    "id": 8,
-    "question": "What disease is caused by a deficiency of vitamin C?",
-    "category": "Nutrition",
-    "type": "text"
-  },
-  {
-    "id": 9,
-    "question": "What is the main function of the kidneys?",
-    "category": "Physiology",
-    "type": "text"
-  },
-  {
-    "id": 10,
-    "question": "What is the leading cause of lung cancer?",
-    "category": "Oncology",
-    "type": "text"
-  }
-]
 
+
+{
+  "Long-essays": {
+    "long_essays": [
+      { "question": "Discuss multislice computed tomography" },
+      { "question": "What are contrast media? How do you classify them? Mention the adverse effects?" },
+      { "question": "Discuss the principles of nuclear medicine imaging and instrumentation" }
+    ],
+    "short_essays": [
+      { "question": "MRI angiography" },
+      { "question": "Ultra sound artifacts" },
+      { "question": "Types of transducers probe and its application OR Gradient coils" },
+      { "question": "Safety dose and radiation dose in CT scan" },
+      { "question": "Quality check and maintenance in CT" },
+      { "question": "2D, 3D ultrasound" },
+      { "question": "SPECT" },
+      { "question": "USG guided procedures – patient preparation OR Plezoelectric crystal" },
+      { "question": "Power doppler" },
+      { "question": "Precautions while handling radionuclide" }
+    ],
+    "short_answers": [
+      { "question": "Radio frequency transmitter (MRI)" },
+      { "question": "Rectilinear scanner" },
+      { "question": "Perfusions in MRI scan" },
+      { "question": "Bowel preparation for abdominal ultrasound" },
+      { "question": "CT console" },
+      { "question": "Photomultipliers" },
+      { "question": "Motion artifact" },
+      { "question": "Mechanical transducers" },
+      { "question": "Free induction decay" },
+      { "question": "Larmor frequency" }
+    ]
+  }
+}

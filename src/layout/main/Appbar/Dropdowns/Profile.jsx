@@ -1,25 +1,346 @@
+// import React, { useEffect, useState } from 'react';
+// import { Person, Gear, Unlock, Power, CheckCircleFill, MoonFill } from 'react-bootstrap-icons';
+// import { Dropdown } from 'react-bootstrap';
+// import { useLayout, useLayoutUpdate } from '../../../provider/Theme';
+// import { 
+//     Image,
+//     DropdownToggle, 
+//     DropdownMenu,
+//     Media
+// } from '../../../../components';
+// import { useSearchParams, useNavigate } from 'react-router-dom';
+// import classNames from 'classnames';
+// import { getProfilePic } from '../../../../api/user'; // Adjust path as needed
+// import { useUserData } from '../../../../store/user'; // Adjust path as needed
+
+// const data = [
+//     { text: "Profile", icon: <Person />, link: "/profile?tab=profile-intro" },
+//     { text: "Settings", icon: <Gear />, link: "/profile?tab=profile-edit" },
+//     { text: "Change Password", icon: <Unlock />, link: "/profile?tab=profile-security" },
+//     { divider: true },
+//     { text: "Logout", icon: <Power />, link: "/login" },
+// ];
+
+// function Profile() {
+//     const [searchParams] = useSearchParams();
+//     const [activeLink, setActiveLink] = useState(searchParams.get('tab'));
+//     const [profilePic, setProfilePic] = useState(null);
+//     const [error, setError] = useState(null);
+//     const navigate = useNavigate();
+//     const layout = useLayout();
+//     const layoutUpdate = useLayoutUpdate();
+//     const sessionId = localStorage.getItem('sessionId');
+//     const { userData, loading: userLoading, error: userError } = useUserData(sessionId); // Fetch user data
+
+//     useEffect(() => {
+//         if (sessionId) {
+//             fetchProfilePic(sessionId);
+//         } else {
+//             console.warn('Profile (AppBar) - No sessionId found in localStorage');
+//             setProfilePic('/images/avatar/4.jpg');
+//             setError('No session found. Please log in.');
+//         }
+//     }, [sessionId]); // Added sessionId as dependency
+
+//     useEffect(() => {
+//         setActiveLink(searchParams.get('tab'));
+//     }, [searchParams]);
+
+//     const fetchProfilePic = async (sessionId) => {
+//         try {
+//             const imageUrl = await getProfilePic(sessionId);
+//             setProfilePic(imageUrl);
+//             setError(null);
+//         } catch (err) {
+//             console.error('Profile (AppBar) - Failed to fetch profile picture:', {
+//                 message: err.message,
+//                 status: err.response?.status,
+//                 data: err.response?.data,
+//                 sessionId: sessionId
+//             });
+//             setError(err.message || 'Failed to load profile picture.');
+//             setProfilePic('/images/avatar/4.jpg'); // Fallback
+//         }
+//     };
+//     return (
+//         <Dropdown className="d-inline-flex">
+//             <Dropdown.Toggle as={DropdownToggle} autoClose="outside">
+//                 <Media size="lg" shape="circle">
+//                     <Image src={profilePic || '/images/avatar/4.jpg'} />
+//                 </Media>
+//             </Dropdown.Toggle>
+
+//             <Dropdown.Menu as={DropdownMenu} align="end" style={{ marginTop: "10px" }}>
+//                 <div className="dropdown-gap">
+//                     <Media.Group>
+//                         <Media size="lg">
+//                             <Image src={profilePic || '/images/avatar/4.jpg'} />
+//                         </Media>
+//                         <Media.Col>
+//                             <Media.Row>
+//                                 <h6 className="name">
+//                                     {userLoading ? 'Loading...' : userError ? 'Guest User' : userData?.name || 'Guest User'}
+//                                 </h6>
+//                                 <div className="indicator varified">
+//                                     <CheckCircleFill />
+//                                 </div>
+//                             </Media.Row>
+//                             <Media.Row>
+//                                 <p className="content">Liked that disco music</p>
+//                             </Media.Row>
+//                         </Media.Col>
+//                     </Media.Group>
+//                 </div>
+//                 <div className="dropdown-gap">
+//                     <div className="d-flex gap gap-2">
+//                         <MoonFill />
+//                         <div>
+//                             <h6>Darkmode</h6>
+//                             <ul className="d-flex align-items-center gap gap-3">
+//                                 <li className="inline-flex">
+//                                     <div className="form-check">
+//                                         <input 
+//                                             className="form-check-input" 
+//                                             checked={layout.theme === 'dark'} 
+//                                             onChange={() => layoutUpdate.theme('dark')} 
+//                                             type="radio" 
+//                                             name="themeMode" 
+//                                             id="dark"
+//                                         />
+//                                         <label className="form-check-label small" htmlFor="dark">
+//                                             On
+//                                         </label>
+//                                     </div>
+//                                 </li>
+//                                 <li className="inline-flex">
+//                                     <div className="form-check">
+//                                         <input 
+//                                             className="form-check-input" 
+//                                             checked={layout.theme === 'light'} 
+//                                             onChange={() => layoutUpdate.theme('light')} 
+//                                             type="radio" 
+//                                             name="themeMode" 
+//                                             id="light"
+//                                         />
+//                                         <label className="form-check-label small" htmlFor="light">
+//                                             Off
+//                                         </label>
+//                                     </div>
+//                                 </li>
+//                             </ul>
+//                         </div>
+//                     </div>
+//                 </div>
+//                 <ul className="tyn-list-links">
+//                     {data.map((item, index) => (
+//                         <React.Fragment key={index}>
+//                             {item.divider && <li className="dropdown-divider"></li>}
+//                             {!item.divider && !item.heading && (
+//                                 <li>
+//                                     <button 
+//                                         className={classNames({ 'active': item.link.includes(activeLink) })} 
+//                                         onClick={() => navigate(item.link)}
+//                                     >
+//                                         {item.icon}
+//                                         <span>{item.text}</span>
+//                                     </button>
+//                                 </li>
+//                             )}
+//                         </React.Fragment>
+//                     ))}
+//                 </ul>
+//                 {error && (
+//                     <div className="dropdown-gap text-danger small text-center">
+//                         {error}
+//                     </div>
+//                 )}
+//             </Dropdown.Menu>
+//         </Dropdown>
+//     );
+// }
+
+// export default Profile;
+
+
+// import React, { useEffect, useState } from 'react';
+// import { Person, Gear, Unlock, Power, CheckCircleFill, MoonFill } from 'react-bootstrap-icons';
+// import { Dropdown } from 'react-bootstrap';
+// import { useLayout, useLayoutUpdate } from '../../../provider/Theme';
+// import { 
+//     Image,
+//     DropdownToggle, 
+//     DropdownMenu,
+//     Media
+// } from '../../../../components';
+// import { useSearchParams, useNavigate } from 'react-router-dom';
+// import classNames from 'classnames';
+// import { getProfilePic } from '../../../../api/user'; // Adjust path as needed
+// import { useUserData } from '../../../../store/user'; // Adjust path as needed
+
+// const data = [
+//     { text: "Profile", icon: <Person />, link: "/profile?tab=profile-intro" },
+//     { text: "Settings", icon: <Gear />, link: "/profile?tab=profile-edit" },
+//     { text: "Change Password", icon: <Unlock />, link: "/profile?tab=profile-security" },
+//     { divider: true },
+//     { text: "Logout", icon: <Power />, link: "/login" },
+// ];
+
+// function Profile() {
+//     const [searchParams] = useSearchParams();
+//     const [activeLink, setActiveLink] = useState(searchParams.get('tab'));
+//     const [profilePic, setProfilePic] = useState(null);
+//     const [error, setError] = useState(null);
+//     const navigate = useNavigate();
+//     const layout = useLayout();
+//     const layoutUpdate = useLayoutUpdate();
+//     const sessionId = localStorage.getItem('sessionId');
+//     const { userData, loading: userLoading, error: userError } = useUserData(sessionId); // Fetch user data
+
+//     useEffect(() => {
+//         if (sessionId) {
+//             fetchProfilePic(sessionId);
+//         } else {
+//             console.warn('Profile (AppBar) - No sessionId found in localStorage');
+//             setProfilePic('/images/avatar/4.jpg');
+//             setError('No session found. Please log in.');
+//         }
+//     }, [sessionId]); // Added sessionId as dependency
+
+//     useEffect(() => {
+//         setActiveLink(searchParams.get('tab'));
+//     }, [searchParams]);
+
+//     const fetchProfilePic = async (sessionId) => {
+//         try {
+//             const imageUrl = await getProfilePic(sessionId);
+//             setProfilePic(imageUrl);
+//             setError(null);
+//         } catch (err) {
+//             console.error('Profile (AppBar) - Failed to fetch profile picture:', {
+//                 message: err.message,
+//                 status: err.response?.status,
+//                 data: err.response?.data,
+//                 sessionId: sessionId
+//             });
+//             setError(err.message || 'Failed to load profile picture.');
+//             setProfilePic('/images/avatar/4.jpg'); // Fallback
+//         }
+//     };
+//     return (
+//         <Dropdown className="d-inline-flex">
+//             <Dropdown.Toggle as={DropdownToggle} autoClose="outside">
+//                 <Media size="lg" shape="circle">
+//                     <Image src={profilePic || '/images/avatar/4.jpg'} />
+//                 </Media>
+//             </Dropdown.Toggle>
+
+//             <Dropdown.Menu as={DropdownMenu} align="end" style={{ marginTop: "10px" }}>
+//                 <div className="dropdown-gap">
+//                     <Media.Group>
+//                         <Media size="lg">
+//                             <Image src={profilePic || '/images/avatar/4.jpg'} />
+//                         </Media>
+//                         <Media.Col>
+//                             <Media.Row>
+//                                 <h6 className="name">
+//                                     {userLoading ? 'Loading...' : userError ? 'Guest User' : userData?.name || 'Guest User'}
+//                                 </h6>
+//                                 <div className="indicator varified">
+//                                     <CheckCircleFill />
+//                                 </div>
+//                             </Media.Row>
+//                             <Media.Row>
+//                                 <p className="content">Liked that disco music</p>
+//                             </Media.Row>
+//                         </Media.Col>
+//                     </Media.Group>
+//                 </div>
+//                 <div className="dropdown-gap">
+//                     <div className="d-flex gap gap-2">
+//                         <MoonFill />
+//                         <div>
+//                             <h6>Darkmode</h6>
+//                             <ul className="d-flex align-items-center gap gap-3">
+//                                 <li className="inline-flex">
+//                                     <div className="form-check">
+//                                         <input 
+//                                             className="form-check-input" 
+//                                             checked={layout.theme === 'dark'} 
+//                                             onChange={() => layoutUpdate.theme('dark')} 
+//                                             type="radio" 
+//                                             name="themeMode" 
+//                                             id="dark"
+//                                         />
+//                                         <label className="form-check-label small" htmlFor="dark">
+//                                             On
+//                                         </label>
+//                                     </div>
+//                                 </li>
+//                                 <li className="inline-flex">
+//                                     <div className="form-check">
+//                                         <input 
+//                                             className="form-check-input" 
+//                                             checked={layout.theme === 'light'} 
+//                                             onChange={() => layoutUpdate.theme('light')} 
+//                                             type="radio" 
+//                                             name="themeMode" 
+//                                             id="light"
+//                                         />
+//                                         <label className="form-check-label small" htmlFor="light">
+//                                             Off
+//                                         </label>
+//                                     </div>
+//                                 </li>
+//                             </ul>
+//                         </div>
+//                     </div>
+//                 </div>
+//                 <ul className="tyn-list-links">
+//                     {data.map((item, index) => (
+//                         <React.Fragment key={index}>
+//                             {item.divider && <li className="dropdown-divider"></li>}
+//                             {!item.divider && !item.heading && (
+//                                 <li>
+//                                     <button 
+//                                         className={classNames({ 'active': item.link.includes(activeLink) })} 
+//                                         onClick={() => navigate(item.link)}
+//                                     >
+//                                         {item.icon}
+//                                         <span>{item.text}</span>
+//                                     </button>
+//                                 </li>
+//                             )}
+//                         </React.Fragment>
+//                     ))}
+//                 </ul>
+//                 {error && (
+//                     <div className="dropdown-gap text-danger small text-center">
+//                         {error}
+//                     </div>
+//                 )}
+//             </Dropdown.Menu>
+//         </Dropdown>
+//     );
+// }
+
+// export default Profile;
+
+
+
 import React, { useEffect, useState } from 'react';
 import { Person, Gear, Unlock, Power, CheckCircleFill, MoonFill } from 'react-bootstrap-icons';
 import { Dropdown } from 'react-bootstrap';
-import { useLayout, useLayoutUpdate } from '../../../provider/Theme';
-import { 
+import {
     Image,
-    DropdownToggle, 
+    DropdownToggle,
     DropdownMenu,
     Media
 } from '../../../../components';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import classNames from 'classnames';
-import { getProfilePic } from '../../../../api/user'; // Adjust path as needed
-import { useUserData } from '../../../../store/user'; // Adjust path as needed
-
-const data = [
-    { text: "Profile", icon: <Person />, link: "/profile?tab=profile-intro" },
-    { text: "Settings", icon: <Gear />, link: "/profile?tab=profile-edit" },
-    { text: "Change Password", icon: <Unlock />, link: "/profile?tab=profile-security" },
-    { divider: true },
-    { text: "Logout", icon: <Power />, link: "/login" },
-];
+import { getProfilePic } from '../../../../api/user';
+import { useUserData } from '../../../../store/user';
+import { useLayout, useLayoutUpdate } from '../../../provider/Theme';
 
 function Profile() {
     const [searchParams] = useSearchParams();
@@ -30,17 +351,18 @@ function Profile() {
     const layout = useLayout();
     const layoutUpdate = useLayoutUpdate();
     const sessionId = localStorage.getItem('sessionId');
-    const { userData, loading: userLoading, error: userError } = useUserData(sessionId); // Fetch user data
+    const [isLoggedIn, setIsLoggedIn] = useState(!!sessionId);
+
+    const { userData, loading: userLoading, error: userError } = useUserData(sessionId);
 
     useEffect(() => {
-        if (sessionId) {
+        if (isLoggedIn) {
             fetchProfilePic(sessionId);
         } else {
-            console.warn('Profile (AppBar) - No sessionId found in localStorage');
             setProfilePic('/images/avatar/4.jpg');
-            setError('No session found. Please log in.');
+            setError('You are not logged in.');
         }
-    }, [sessionId]); // Added sessionId as dependency
+    }, [isLoggedIn]);
 
     useEffect(() => {
         setActiveLink(searchParams.get('tab'));
@@ -52,16 +374,32 @@ function Profile() {
             setProfilePic(imageUrl);
             setError(null);
         } catch (err) {
-            console.error('Profile (AppBar) - Failed to fetch profile picture:', {
-                message: err.message,
-                status: err.response?.status,
-                data: err.response?.data,
-                sessionId: sessionId
-            });
-            setError(err.message || 'Failed to load profile picture.');
-            setProfilePic('/images/avatar/4.jpg'); // Fallback
+            console.error('Failed to fetch profile picture:', err);
+            setProfilePic('/images/avatar/4.jpg');
+            setError('Failed to load profile picture.');
         }
     };
+
+    const handleLogout = () => {
+        localStorage.removeItem('sessionId');
+        setIsLoggedIn(false);
+        navigate('/login');
+    };
+
+    const handleLogin = () => {
+        navigate('/login');
+    };
+
+    const menuItems = isLoggedIn
+        ? [
+              { text: 'Profile', icon: <Person />, link: '/profile?tab=profile-intro' },
+              { text: 'Settings', icon: <Gear />, link: '/profile?tab=profile-edit' },
+              { text: 'Change Password', icon: <Unlock />, link: '/profile?tab=profile-security' },
+              { divider: true },
+              { text: 'Logout', icon: <Power />, action: handleLogout }
+          ]
+        : [{ text: 'Login', icon: <Power />, action: handleLogin }];
+
     return (
         <Dropdown className="d-inline-flex">
             <Dropdown.Toggle as={DropdownToggle} autoClose="outside">
@@ -70,7 +408,7 @@ function Profile() {
                 </Media>
             </Dropdown.Toggle>
 
-            <Dropdown.Menu as={DropdownMenu} align="end" style={{ marginTop: "10px" }}>
+            <Dropdown.Menu as={DropdownMenu} align="end" style={{ marginTop: '10px' }}>
                 <div className="dropdown-gap">
                     <Media.Group>
                         <Media size="lg">
@@ -79,7 +417,11 @@ function Profile() {
                         <Media.Col>
                             <Media.Row>
                                 <h6 className="name">
-                                    {userLoading ? 'Loading...' : userError ? 'Guest User' : userData?.name || 'Guest User'}
+                                    {userLoading
+                                        ? 'Loading...'
+                                        : userError || !isLoggedIn
+                                        ? 'Guest User'
+                                        : userData?.name || 'Guest User'}
                                 </h6>
                                 <div className="indicator varified">
                                     <CheckCircleFill />
@@ -91,6 +433,7 @@ function Profile() {
                         </Media.Col>
                     </Media.Group>
                 </div>
+
                 <div className="dropdown-gap">
                     <div className="d-flex gap gap-2">
                         <MoonFill />
@@ -99,12 +442,12 @@ function Profile() {
                             <ul className="d-flex align-items-center gap gap-3">
                                 <li className="inline-flex">
                                     <div className="form-check">
-                                        <input 
-                                            className="form-check-input" 
-                                            checked={layout.theme === 'dark'} 
-                                            onChange={() => layoutUpdate.theme('dark')} 
-                                            type="radio" 
-                                            name="themeMode" 
+                                        <input
+                                            className="form-check-input"
+                                            checked={layout.theme === 'dark'}
+                                            onChange={() => layoutUpdate.theme('dark')}
+                                            type="radio"
+                                            name="themeMode"
                                             id="dark"
                                         />
                                         <label className="form-check-label small" htmlFor="dark">
@@ -114,12 +457,12 @@ function Profile() {
                                 </li>
                                 <li className="inline-flex">
                                     <div className="form-check">
-                                        <input 
-                                            className="form-check-input" 
-                                            checked={layout.theme === 'light'} 
-                                            onChange={() => layoutUpdate.theme('light')} 
-                                            type="radio" 
-                                            name="themeMode" 
+                                        <input
+                                            className="form-check-input"
+                                            checked={layout.theme === 'light'}
+                                            onChange={() => layoutUpdate.theme('light')}
+                                            type="radio"
+                                            name="themeMode"
                                             id="light"
                                         />
                                         <label className="form-check-label small" htmlFor="light">
@@ -131,15 +474,16 @@ function Profile() {
                         </div>
                     </div>
                 </div>
+
                 <ul className="tyn-list-links">
-                    {data.map((item, index) => (
+                    {menuItems.map((item, index) => (
                         <React.Fragment key={index}>
                             {item.divider && <li className="dropdown-divider"></li>}
-                            {!item.divider && !item.heading && (
+                            {!item.divider && (
                                 <li>
-                                    <button 
-                                        className={classNames({ 'active': item.link.includes(activeLink) })} 
-                                        onClick={() => navigate(item.link)}
+                                    <button
+                                        className={classNames({ active: item.link && item.link.includes(activeLink) })}
+                                        onClick={() => (item.action ? item.action() : navigate(item.link))}
                                     >
                                         {item.icon}
                                         <span>{item.text}</span>
@@ -149,6 +493,7 @@ function Profile() {
                         </React.Fragment>
                     ))}
                 </ul>
+
                 {error && (
                     <div className="dropdown-gap text-danger small text-center">
                         {error}
